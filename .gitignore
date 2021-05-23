@@ -1,0 +1,14 @@
+*.ai
+*.eps
+*.err
+*.exe
+*.out
+*.pdf
+*.png
+*.pptx
+*.sample
+*.stackdump
+*.svg
+*.txt
+*.sh
+plain_sweep
