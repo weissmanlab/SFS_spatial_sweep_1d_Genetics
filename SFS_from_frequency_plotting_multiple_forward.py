@@ -16,8 +16,6 @@ from scipy.optimize import curve_fit
 
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif', size=50)
-#plt.rcParams.update({'font.size': 50})
-#axfont = {'fontname' : 'Helvetica'}
 plt.figure(figsize = (24, 18))
 plt.xlabel(r'Frequency, $f$')
 plt.ylabel(r'Number of alleles, $P(f)$')
