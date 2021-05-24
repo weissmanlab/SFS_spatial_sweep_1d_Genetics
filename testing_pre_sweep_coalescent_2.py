@@ -43,7 +43,7 @@ while left_individuals > 1:
     individuals = unique
     left_individuals = len(individuals)
 
-
+SFS *= nsample
 import matplotlib.pyplot as plt
 f = np.arange(1, nsample + 1) / nsample
 plt.loglog(f, SFS)

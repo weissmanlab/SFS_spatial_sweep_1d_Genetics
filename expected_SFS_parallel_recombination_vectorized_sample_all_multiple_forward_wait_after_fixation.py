@@ -2,15 +2,13 @@
 """
 Coalescent simulation with recombination.
 open the frequency file read backward in time until n individuals all coalesce.
-As we go, we will record the number of leaves for each node. Then we sample
-some of the leaf counts with rate Un, since a neutral mutation arises as a
-Poisson process. We append the counts until we reach a single common ancestor.
-The histogram of the counts is SFS
+As we go, we will record the number of leaves for each node. 
+If the neutral mutation arises as a Poisson process with rate Un = 1, 
+the expected AFS is the histogram of the leaf counts 
 
-
-
-
-Todo: fix after time zero. (get parent pre sweep)
+Update : pre-sweep coalescent process changed to account for more than one 
+mergers in a single generation when there are many individuals are left. 
+(compared to sqrt(2 * N))
 
 
 """
@@ -29,7 +27,6 @@ from numpy import random
 # m = 0.25
 # r = 0
 # tfinal = 10000
-# Un = 1
 # nbase = 1000
 # N_SFS = 10
 
@@ -40,11 +37,10 @@ s = float(sys.argv[3]) # selection coef
 m = float(sys.argv[4]) # migration rate
 r = float(sys.argv[5]) # recombination rate
 tfinal = int(sys.argv[6]) # sweep time
-Un = float(sys.argv[7]) # rate of neutral mutation
-nbase = int(sys.argv[8]) # sample size
-N_SFS = int(sys.argv[9]) # number of coalescent simulation we run.
-T_after_fix = int(sys.argv[10]) # number of generations between fixation and sampling
-n_forward = int(sys.argv[11]) # forward time simulation number
+nbase = int(sys.argv[7]) # sample size
+N_SFS = int(sys.argv[8]) # number of coalescent simulation we run.
+T_after_fix = int(sys.argv[9]) # number of generations between fixation and sampling
+n_forward = int(sys.argv[10]) # forward time simulation number
 fname = 'L={}_N={}_s={:.6f}_m={:.6f}_tfinal={}_{}.txt'.format(L, 
            N, s, m, tfinal, n_forward)
 freq_file = open(fname)
@@ -268,10 +264,6 @@ def runner(idx):
         hist, bin_edges = np.histogram(leaf_counts,
                                        bins = np.arange(1, n + 2))
         
-#        neutral_mut_counts = random.poisson(Un, len(unique))
-#        descendents_counts = np.repeat(leaf_counts, neutral_mut_counts)
-#        hist, bin_edges = np.histogram(descendents_counts,
-#                                       bins = np.arange(1, n + 2))
         SFS += hist
         individuals = unique
 
@@ -288,10 +280,6 @@ def runner(idx):
         hist, bin_edges = np.histogram(leaf_counts,
                                        bins = np.arange(1, n + 2))
 
-#        neutal_mut_counts = random.poisson(Un, len(unique))
-#        descendents_counts = np.repeat(leaf_counts, neutal_mut_counts)
-#        hist, bin_edges = np.histogram(descendents_counts,
-#                                       bins = np.arange(1, n + 2))
         SFS += hist
         individuals = unique
         Ne = Ne_parent
@@ -303,9 +291,6 @@ def runner(idx):
     # disperse for L^2 / m / N. We speed up the simulation by recording the number
     # of generations between the coalescence events.
     left_individuals = len(individuals)
-    # individuals = [individuals[i][1] for i in range(left_individuals)]
-    # print((individuals.T)[:][0])
-    # print(left_individuals)
     branch_len = 0 # number of generations until first merging event
     extra_gen = 0 # extra run time before stopping the coalescent simulation.
 
@@ -325,10 +310,6 @@ def runner(idx):
         if left_individuals == current_individuals_counts:
             individuals = individuals2
         else:
-#            neutal_mut_counts = random.poisson(Un * branch_len, len(unique))
-#            descendents_counts = np.repeat(leaf_counts, neutal_mut_counts)
-#            hist, bin_edges = np.histogram(descendents_counts,
-#                                       bins = np.arange(1, n + 2))
             hist, bin_edges = np.histogram(leaf_counts * branch_len,
                                        bins = np.arange(1, n + 2))
 
@@ -336,47 +317,38 @@ def runner(idx):
             individuals = unique
             branch_len = 0
         left_individuals = len(individuals)
-        # if np.mod(extra_gen, 500) == 0:
-        #     print('extra gen = ' + str(extra_gen))
         
         
         
     # After the individuals disperse, we may ignore the spatial structure.
-    # We use a random number and p(T2 > t) to find the coalescent time.
-    # If there left_individuals = k, 
-    # p(T2 > t) = ((NL - 1) / NL * (NL - 2) / NL * ... * (NL - k + 1) / NL) ^ t
-    # Drawing a random number x between 0 and 1, assume we have
-    # p(T2 > t) < x < p(T2 > t - 1). Then T2 = t.
-    # This is equivalent to T2 = 1 + floor(ln(x) / ln((NL - 1) / NL * (NL - 2) / NL * ... * (NL - k + 1) / NL))
+    # If there are more than sqrt(2 * N * L) individuals left, it is likely
+    # to have more than 1 merging event in a single generation. Thus, we manually
+    # draw parent for every individual and find if some of them are the same.
+    # Once there are much smaller number of individuals left, it will take a long
+    # time to coalesce. Thus, we draw T2 (time until the first coalescent) from
+    # geometric prob. distribution. (This is found from prob. of choosing different
+    # parent for every individual left.)
     
-    branch_len = 0
     while left_individuals > 1:
+        if left_individuals > np.sqrt(2 * N * L / 10):
+            T2 = 1
+            parents = random.choice(range(N), size = left_individuals)
+            individuals2 = np.repeat(parents, leaf_counts, axis = 0)
+        else: 
+            log_prob_no_coal = np.sum([np.log((N * L - j) / (N * L )) 
+            for j in np.arange(1, left_individuals)])
+            p = 1 - np.exp(log_prob_no_coal)
+            T2 = random.geometric(p)        
+            coal_inds = random.choice(range(left_individuals), 
+                                  size = 2)
+            individuals[coal_inds[0]] = individuals[coal_inds[1]] 
         
-        x = random.random()
-        log_prob_no_coal = np.sum([np.log((N * L - j) / (N * L)) 
-        for j in np.arange(1, left_individuals)])
-        T2 = np.floor(np.log(x) / log_prob_no_coal) + 1
-        
-        # Next, we should sample two random linages out of k that coalesce after T2
-        n_coal = 1
-        p_n_coal = 1
-        while x < p_n_coal:
-            p_n_coal *= (N * L - n_coal) / (N * L)
-            n_coal += 1
-        coal_inds = random.choice(range(left_individuals), size = 2 * n_coal)
-        
-        individuals[coal_inds[0:2 * n_coal - 1:2]] = individuals[coal_inds[1:2 * n_coal:2]]
-        individuals2 = np.repeat(individuals, leaf_counts, axis = 0)
+            individuals2 = np.repeat(individuals, leaf_counts, axis = 0)
+
         unique, leaf_counts = np.unique(individuals2, 
                                         axis = 0, return_counts = True)
         hist, bin_edges = np.histogram(leaf_counts * T2,
                                        bins = np.arange(1, n + 2))
-
-
-#        neutral_mut_counts = random.poisson(Un * T2, len(unique))
-#        descendents_counts = np.repeat(leaf_counts, neutral_mut_counts)
-#        hist, bin_edges = np.histogram(descendents_counts,
-#                                       bins = np.arange(1, n + 2))
         SFS += hist
         individuals = unique
         left_individuals = len(individuals)

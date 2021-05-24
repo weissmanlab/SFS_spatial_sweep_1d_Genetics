@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 plt.rc('text', usetex=True)
-plt.rc('font', family='serif', size=100)
+plt.rc('font', family='serif', size=140)
 
 
 L = 500
@@ -23,7 +23,7 @@ tf_real = len(lines)
 v_list = []
 
 plt.figure(figsize = (20, 8))
-plt.plot(lines[1100] / N, linewidth = 10, color = 'k')
+plt.plot(lines[1000] / N, linewidth = 10, color = 'k')
 plt.xlim((90, 160))
 plt.ylim((-0.01, 1.02))
 #plt.gca().axes.get_xaxis().set_visible(False)
