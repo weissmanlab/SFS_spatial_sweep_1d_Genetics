@@ -49,7 +49,7 @@ r2 = 0.00128
 r3 = 0.00512
 r4 = 0.02048
 r5 = 0.2
-r6 = 0.999
+r6 = 0.5
 
 f = np.arange(1, n + 1) / n
 navg = 20
@@ -142,18 +142,18 @@ plt.loglog(f_short,
              moving_average(SFS6, navg, start_smooth), 
              label = '$r_6 =$ {:.6f}'.format(r6), linewidth = 0.9, color = 'r')
 
-#plt.semilogy(f_short, 
-#           2 * Un * N * L * np.ones(len(f_short)) / f_short,
-#           label = '$p(f) = 2 N U_n / f$', linestyle = '--', linewidth = 2)
-#plt.semilogy(f_short, 
-#           Un / s / f_short ** 2, label = '$p(f) = U_n / (s f^2)$', 
-#           linestyle = '--', linewidth = 2)
+plt.semilogy(f_short, 
+           2 * Un * N * L * np.ones(len(f_short)) / f_short,
+           label = '$p(f) = 2 N U_n / f$', linestyle = '--', linewidth = 2)
+plt.semilogy(f_short, 
+           Un / s / f_short ** 2, label = '$p(f) = U_n / (s f^2)$', 
+           linestyle = '--', linewidth = 2)
 plt.semilogy(f_short, np.ones(len(f_short)) * L / v0, linewidth = 2, linestyle = '--'
               , label = '$p(f) = U_n L / v$', color = 'b')
 
 
-#plt.vlines(1 / (N * v0), 10 ** 3, 10 ** 11, linestyle = 'dotted',
-#           linewidth = 1, color = 'b', label = r'$f = 1 / \rho v$')
+plt.vlines(1 / (N * v0), 10 ** 3, 10 ** 11, linestyle = 'dotted',
+           linewidth = 1, color = 'b', label = r'$f = 1 / \rho v$')
 
 
 plt.title('L = {}, '.format(L) + 
