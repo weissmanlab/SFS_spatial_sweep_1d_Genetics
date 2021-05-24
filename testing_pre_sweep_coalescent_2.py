@@ -8,8 +8,8 @@ Created on Thu May 20 15:36:20 2021
 import numpy as np
 import numpy.random as random
 
-N = 10000000
-nsample = 100000
+N = 200000
+nsample = 10000
 left_individuals = nsample
 individuals = np.arange(left_individuals)
 leaf_counts = [1 for _ in range(left_individuals)]
@@ -19,14 +19,15 @@ SFS = np.zeros(nsample)
 
 while left_individuals > 1:
     print(left_individuals)
-    if left_individuals > 100:
+    if left_individuals > np.sqrt(2 * N / 10):
         T2 = 1
         parents = random.choice(range(N), size = left_individuals)
         individuals2 = np.repeat(parents, leaf_counts, axis = 0)
     else:
-        
-        T2 = 1 + random.exponential(N / 
-                (left_individuals * (left_individuals - 1) / 2))
+        log_prob_no_coal = np.sum([np.log((N - j) / N) 
+        for j in np.arange(1, left_individuals)])
+        p = 1 - np.exp(log_prob_no_coal)
+        T2 = random.geometric(p)        
         print(T2)
         coal_inds = random.choice(range(left_individuals), 
                               size = 2)
