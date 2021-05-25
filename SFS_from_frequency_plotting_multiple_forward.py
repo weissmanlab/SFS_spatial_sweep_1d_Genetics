@@ -22,10 +22,10 @@ def power_law_fit(x, a):
 
 from labellines import labelLines
 plt.rc('text', usetex=True)
-plt.rc('font', family='serif', size = 58)
+plt.rc('font', family='serif', size = 60, weight = 'bold')
 plt.figure(figsize = (24, 18))
-plt.xlabel(r'Frequency, $f$')
-plt.ylabel(r'Number of alleles, $P(f)$')
+plt.xlabel(r'Frequency, $f$', fontsize = 75)
+plt.ylabel(r'Number of alleles, $P(f)$', fontsize = 75)
 
 L = 500
 N = 20000
@@ -70,62 +70,62 @@ for i in range(n_forward):
 
 SFS /= n_forward
 
-#plt.loglog(f_short, 
-#             moving_average(SFS, navg, start_smooth), 
-#             linewidth = 6, color = 'k')
-#
-#plt.vlines(1 / (N * v), 10 ** (-2), 10 ** 15, linestyle = 'dotted',
-#           linewidth = 5, color = '#009e73')
-#
-#vline = plt.axvline(1 / (N * v), 10 ** 3, 10 ** 11, linestyle = 'dotted',
-#           linewidth = 5)
-#
-#plt.text(0.0004, 50, r'$f = 1 / \rho v$', color = '#009e73')
-#
-#
-#neutral, = plt.loglog(f_short, 
-#           2 * Un * N * L * np.ones(len(f_short)) / f_short,
-#           label = r'$2 N U / f$', linestyle = '--', linewidth = 6,
-#           alpha = 0.7, color = '#cc79a7')
-#
-#
-#bsc, = plt.loglog(f_short, 
-#           Un / s / f_short ** 2, label = r'$U / (s f^2)$', 
-#           linestyle = '-.', linewidth = 6, alpha = 0.7, color = '#0072b2')
-#
-#
-#flat, = plt.loglog(f_short, np.ones(len(f_short)) * L / v, linewidth = 6, 
-#           linestyle = 'dotted' , alpha = 0.7
-#              , label = r'$U L / v$', color = '#d55e00')
-#
-#xvals = [0.002, 0.02, 0.008]
-#labelLines(plt.gca().get_lines(),xvals=xvals)
-#
-#
-#
-#
-#
-#
-##vline_legend = plt.legend(handles = [vline], loc = (0.02, 0.03), 
-##                          fontsize = 'small')
-##plt.gca().add_artist(vline_legend)
-#
-#plt.show()
-
-##########################3
-plt.figure(figsize = (24, 18))
-#plt.xlabel(r'Frequency, $f$')
-#plt.ylabel(r'Number of alleles, $P(f)$')
-
-plt.semilogy(f_short, 
+plt.loglog(f_short, 
              moving_average(SFS, navg, start_smooth), 
-             linewidth = 10, color = 'k')
-flat, = plt.semilogy(f_short, np.ones(len(f_short)) * L / v, linewidth = 10, 
-           linestyle = 'dotted' , alpha = 0.7
-              , label = r'$U_n L / v$', color = '#d55e00')
-plt.locator_params(axis='x', nbins = 3)
-plt.locator_params(axis='y', nbins = 3)
+             linewidth = 6, color = 'k')
+
+plt.vlines(1 / (N * v), 10 ** (-2), 10 ** 15, linestyle = 'dotted',
+           linewidth = 5, color = '#009e73')
+
+vline = plt.axvline(1 / (N * v), 10 ** 3, 10 ** 11, linestyle = 'dotted',
+           linewidth = 5)
+
+plt.text(0.0004, 50, r'$\boldmath{f = 1 / \rho v}$', 
+         color = '#009e73', fontsize = 75)
+
+
+neutral, = plt.loglog(f_short, 
+           2 * Un * N * L * np.ones(len(f_short)) / f_short,
+           label = r'$\boldmath{2 N U / f}$', linestyle = '--', linewidth = 6,
+           color = '#cc79a7')
+
+
+bsc, = plt.loglog(f_short, 
+           Un / s / f_short ** 2, label = r'$\boldmath{U / (s f^2)}$', 
+           linestyle = '-.', linewidth = 6, color = '#0072b2')
+
+
+flat, = plt.loglog(f_short, np.ones(len(f_short)) * L / v, linewidth = 6, 
+           linestyle = 'dotted'
+              , label = r'$\boldmath{U L / v}$', color = '#d55e00')
+
+xvals = [0.002, 0.0002, 0.01]
+labelLines(plt.gca().get_lines() ,xvals = xvals, fontsize = 75)
+
+
+
+
+
+
+#vline_legend = plt.legend(handles = [vline], loc = (0.02, 0.03), 
+#                          fontsize = 'small')
+#plt.gca().add_artist(vline_legend)
 
 plt.show()
+
+##########################3
+#plt.figure(figsize = (24, 18))
+##plt.xlabel(r'Frequency, $f$')
+##plt.ylabel(r'Number of alleles, $P(f)$')
+#
+#plt.semilogy(f_short, 
+#             moving_average(SFS, navg, start_smooth), 
+#             linewidth = 10, color = 'k')
+#flat, = plt.semilogy(f_short, np.ones(len(f_short)) * L / v, linewidth = 15, 
+#           linestyle = 'dotted' 
+#              , label = r'$U_n L / v$', color = '#d55e00')
+#plt.locator_params(axis='x', nbins = 3)
+#
+#plt.show()
 
 

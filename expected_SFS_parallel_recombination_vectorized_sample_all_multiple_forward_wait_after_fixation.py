@@ -62,10 +62,13 @@ def get_parent_presweep_arr_new(inds):
     ind_in_deme_arr_new = np.zeros_like(ind_in_deme_arr)
 
     len_inds = len(inds)
+    # array of random numbers used to determine which deme the parent is in.
     which_deme_rand = random.random(len_inds)
+    # random numbers used to determine which individual to pick in each deme.
     choice_rand = random.random(len_inds)
-    left_range_prob = m / 2
-    mid_range_prob = 1 - m / 2
+    left_range_prob = m / 2 # prob of going to the left
+    mid_range_prob = 1 - m / 2 # P(left) + P(middle)
+    # P(left) + P(middle) + P(right) = 1
 
     left_idxs = np.where(which_deme_rand < left_range_prob)[0]
     deme_arr_new[left_idxs] = (deme_arr[left_idxs] - 1).astype(np.int64)
@@ -78,6 +81,9 @@ def get_parent_presweep_arr_new(inds):
     right_idxs = np.where(which_deme_rand > mid_range_prob)[0]
     deme_arr_new[right_idxs] = (deme_arr[right_idxs] + 1).astype(np.int64)
 
+
+    # Taking care of the edge cases
+    
     left_edge_idxs = np.where(deme_arr_new < 0)[0]
     deme_arr_new[left_edge_idxs] = 0
 
