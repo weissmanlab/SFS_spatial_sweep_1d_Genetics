@@ -330,20 +330,29 @@ def runner(idx):
     # parent for every individual left.)
     
     while left_individuals > 1:
-        if left_individuals > np.sqrt(2 * N * L / 10):
-            T2 = 1
-            parents = random.choice(range(N), size = left_individuals)
-            individuals2 = np.repeat(parents, leaf_counts, axis = 0)
-        else: 
-            log_prob_no_coal = np.sum([np.log((N * L - j) / (N * L )) 
-            for j in np.arange(1, left_individuals)])
-            p = 1 - np.exp(log_prob_no_coal)
-            T2 = random.geometric(p)        
-            coal_inds = random.choice(range(left_individuals), 
-                                  size = 2)
-            individuals[coal_inds[0]] = individuals[coal_inds[1]] 
+        log_prob_no_coal = np.sum([np.log((N * L - j) / (N * L)) 
+        for j in np.arange(1, left_individuals)])
+        p = 1 - np.exp(log_prob_no_coal)
+        T2 = random.geometric(p)        
+        num_coal = 0
+        if T2 == 1:
+            x = random.random()
+            p_num_coal = 1
+            while x < p_num_coal:
+                p_num_coal *= ((n - 2 * num_coal) * 
+                               (n - 2 * num_coal - 1) / 
+                               (2 * N * L) * (N * L - num_coal) / (N * L))
+                num_coal += 1
+        if num_coal == 0:
+            num_coal = 1
         
-            individuals2 = np.repeat(individuals, leaf_counts, axis = 0)
+        coal_inds = random.choice(range(left_individuals), 
+                                  size = int(2 * num_coal))
+
+        for i in range(num_coal):
+            individuals[coal_inds[2 * i]] = individuals[coal_inds[2 * i + 1]] 
+
+        individuals2 = np.repeat(individuals, leaf_counts, axis = 0)
 
         unique, leaf_counts = np.unique(individuals2, 
                                         axis = 0, return_counts = True)

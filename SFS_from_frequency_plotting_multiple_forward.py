@@ -22,7 +22,7 @@ def power_law_fit(x, a):
 
 from labellines import labelLines
 plt.rc('text', usetex=True)
-plt.rc('font', family='serif', size = 70)
+plt.rc('font', family='serif', size = 58)
 plt.figure(figsize = (24, 18))
 plt.xlabel(r'Frequency, $f$')
 plt.ylabel(r'Number of alleles, $P(f)$')
@@ -70,41 +70,47 @@ for i in range(n_forward):
 
 SFS /= n_forward
 
-
 #plt.loglog(f_short, 
 #             moving_average(SFS, navg, start_smooth), 
-#             linewidth = 6)
+#             linewidth = 6, color = 'k')
+#
+#plt.vlines(1 / (N * v), 10 ** (-2), 10 ** 15, linestyle = 'dotted',
+#           linewidth = 5, color = '#009e73')
+#
+#vline = plt.axvline(1 / (N * v), 10 ** 3, 10 ** 11, linestyle = 'dotted',
+#           linewidth = 5)
+#
+#plt.text(0.0004, 50, r'$f = 1 / \rho v$', color = '#009e73')
+#
 #
 #neutral, = plt.loglog(f_short, 
 #           2 * Un * N * L * np.ones(len(f_short)) / f_short,
-#           label = r'$2 N U_n / f$', linestyle = '--', linewidth = 6,
-#           alpha = 0.7)
+#           label = r'$2 N U / f$', linestyle = '--', linewidth = 6,
+#           alpha = 0.7, color = '#cc79a7')
 #
 #
 #bsc, = plt.loglog(f_short, 
-#           Un / s / f_short ** 2, label = r'$U_n / (s f^2)$', 
-#           linestyle = '-.', linewidth = 6, alpha = 0.7)
+#           Un / s / f_short ** 2, label = r'$U / (s f^2)$', 
+#           linestyle = '-.', linewidth = 6, alpha = 0.7, color = '#0072b2')
 #
 #
 #flat, = plt.loglog(f_short, np.ones(len(f_short)) * L / v, linewidth = 6, 
 #           linestyle = 'dotted' , alpha = 0.7
-#              , label = r'$U_n L / v$')
+#              , label = r'$U L / v$', color = '#d55e00')
 #
-#xvals = [0.002, 0.0001, 0.018]
+#xvals = [0.002, 0.02, 0.008]
 #labelLines(plt.gca().get_lines(),xvals=xvals)
 #
 #
-#plt.axvline(1 / (N * v), linestyle = 'dotted', linewidth = 5)
-#vline = plt.axvline(1 / (N * v), 10 ** 3, 10 ** 11, linestyle = 'dotted',
-#           linewidth = 5, label = r'$f = 1 / \rho v$')
 #
-#plt.text(0.0004, 10 ** 13, r'$f = 1 / \rho v$', color = vline.get_color())
+#
+#
+#
 ##vline_legend = plt.legend(handles = [vline], loc = (0.02, 0.03), 
 ##                          fontsize = 'small')
 ##plt.gca().add_artist(vline_legend)
 #
 #plt.show()
-#plt.close()
 
 ##########################3
 plt.figure(figsize = (24, 18))
@@ -113,10 +119,13 @@ plt.figure(figsize = (24, 18))
 
 plt.semilogy(f_short, 
              moving_average(SFS, navg, start_smooth), 
-             linewidth = 6)
+             linewidth = 10, color = 'k')
 flat, = plt.semilogy(f_short, np.ones(len(f_short)) * L / v, linewidth = 10, 
            linestyle = 'dotted' , alpha = 0.7
-              , label = r'$U_n L / v$', color = 'r')
+              , label = r'$U_n L / v$', color = '#d55e00')
+plt.locator_params(axis='x', nbins = 3)
+plt.locator_params(axis='y', nbins = 3)
+
 plt.show()
 
 
