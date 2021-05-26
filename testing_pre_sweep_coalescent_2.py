@@ -8,7 +8,7 @@ Created on Thu May 20 15:36:20 2021
 import numpy as np
 import numpy.random as random
 
-N = 10000000
+N = 1000000
 nsample = 100000
 left_individuals = nsample
 individuals = np.arange(left_individuals)
@@ -19,7 +19,7 @@ SFS = np.zeros(nsample)
 
 while left_individuals > 1:
     print(left_individuals)
-    if left_individuals > np.sqrt(2 * N / 10):
+    if left_individuals > np.sqrt(N ** 2):
         
     
         T2 = 1
@@ -27,7 +27,7 @@ while left_individuals > 1:
         individuals2 = np.repeat(parents, leaf_counts, axis = 0)
     else:
         
-        T2 = 1 + random.exponential(2 * N / ((left_individuals - 1) * left_individuals / 2))
+        T2 = random.exponential(2 * N / ((left_individuals - 1) * left_individuals / 2))
 #        log_prob_no_coal = np.sum([np.log((N - j) / N) 
 #        for j in np.arange(1, left_individuals)])
 #        p = 1 - np.exp(log_prob_no_coal)

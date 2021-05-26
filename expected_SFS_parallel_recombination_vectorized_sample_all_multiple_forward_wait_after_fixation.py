@@ -336,35 +336,22 @@ def runner(idx):
     # parent for every individual left.)
     
     while left_individuals > 1:
-        log_prob_no_coal = np.sum([np.log((N * L - j) / (N * L)) 
-        for j in np.arange(1, left_individuals)])
-        p = 1 - np.exp(log_prob_no_coal)
-        T2 = random.geometric(p)        
-        num_coal = 0
-        if T2 == 1:
-            x = random.random()
-            p_num_coal = 1
-            while x < p_num_coal:
-                p_num_coal *= ((n - 2 * num_coal) * 
-                               (n - 2 * num_coal - 1) / 
-                               (2 * N * L) * (N * L - num_coal) / (N * L))
-                num_coal += 1
-        if num_coal == 0:
-            num_coal = 1
+        T2 = 1 + random.exponential(
+                2 * N * L / ((left_individuals - 1) * left_individuals / 2))
+        
+        hist, bin_edges = np.histogram(leaf_counts,
+                                       bins = np.arange(1, n + 2))
+        SFS += hist * T2
         
         coal_inds = random.choice(range(left_individuals), 
-                                  size = int(2 * num_coal))
+                                  size = 2, replace = False)
 
-        for i in range(num_coal):
-            individuals[coal_inds[2 * i]] = individuals[coal_inds[2 * i + 1]] 
+        individuals[coal_inds[0]] = individuals[coal_inds[1]] 
 
         individuals2 = np.repeat(individuals, leaf_counts, axis = 0)
 
         unique, leaf_counts = np.unique(individuals2, 
                                         axis = 0, return_counts = True)
-        hist, bin_edges = np.histogram(leaf_counts * T2,
-                                       bins = np.arange(1, n + 2))
-        SFS += hist
         individuals = unique
         left_individuals = len(individuals)
         # print(left_individuals)
