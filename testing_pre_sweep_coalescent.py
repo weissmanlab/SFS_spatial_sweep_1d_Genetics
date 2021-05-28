@@ -17,7 +17,7 @@ def moving_average(a, n = 3, start_smooth = 30):
     return np.concatenate((a_start, ret[n - 1:] / n))
 
 N = 10000000
-nsample = 100000
+nsample = 20000
 nsim = 10
 
 def main():
@@ -29,7 +29,7 @@ def main():
     SFS = np.zeros(nsample)
     while left_individuals > 1:
         
-        T2 = random.exponential(2 * N / ((left_individuals - 1) * left_individuals / 2))
+        T2 = random.exponential(N / ((left_individuals - 1) * left_individuals / 2))
 
 #        log_prob_no_coal = np.sum([np.log((N - j) / N) 
 #                            for j in np.arange(1, left_individuals)])
@@ -81,8 +81,9 @@ for _ in range(nsim):
     SFS_avg += main() / nsim
 import matplotlib.pyplot as plt
 f = np.arange(1, nsample + 1) / nsample
+plt.figure(figsize = (12, 8))
 plt.loglog(moving_average(f, 20, 20), moving_average(SFS_avg, 20, 20))
-plt.loglog(f, 2 * N / f)
+plt.loglog(f, 4 * N / f)
 
 '''
 I think the issue is that there can only be 2 branches merging in a single generation.

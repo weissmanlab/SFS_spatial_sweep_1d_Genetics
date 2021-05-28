@@ -336,8 +336,8 @@ def runner(idx):
     # parent for every individual left.)
     
     while left_individuals > 1:
-        T2 = 1 + random.exponential(
-                2 * N * L / ((left_individuals - 1) * left_individuals / 2))
+        T2 = random.exponential(
+                N * L / ((left_individuals - 1) * left_individuals / 2))
         
         hist, bin_edges = np.histogram(leaf_counts,
                                        bins = np.arange(1, n + 2))
