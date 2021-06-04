@@ -13,17 +13,20 @@ def power_law_fit(x, a):
     return a * x ** (-2)
 
 from scipy.optimize import curve_fit
+from matplotlib import cm
 
-plt.rcParams.update({'font.size': 15})
-plt.figure(figsize = (12, 9))
-plt.xlabel('f')
-plt.ylabel('p(f)')
+from labellines import labelLines
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif', size = 60, weight = 'bold')
+plt.figure(figsize = (24, 18))
+plt.xlabel(r'Frequency, $f$', fontsize = 75)
+plt.ylabel(r'Number of alleles, $P(f)$', fontsize = 75)
 
-L = 5000
-N = 200
+L = 500
+N = 20000
 s = 0.05
 m = 0.25
-tfinal = 100000
+tfinal = 1000000
 Un = 1
 r = 0
 n_forward = 100
@@ -35,6 +38,8 @@ n = 100000
 nSFS = 1000
 
 tfixlist = [1000, 10000, 100000]
+viridis_cmap = cm.get_cmap('viridis')
+
 colorlist = ['y', 'r', 'c', 'g', 'm', 'b', 'k']
 fitlist = []
 
@@ -59,7 +64,7 @@ for t in np.arange(int(tf_real / 4), int(tf_real * 3 / 4)):
     v_list.append(psum2 - psum1)
 
 v = np.average(v_list)
-
+xpositions = [6 * 10 ** (-5), 10 ** (-3), 10 ** (-2)]
 
 for tind in range(len(tfixlist)):
     tfix = tfixlist[tind]
@@ -69,46 +74,52 @@ for tind in range(len(tfixlist)):
 
     for i in range(n_forward):
         SFS += n * np.loadtxt(
-        'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
+        'backward simulation data/SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
                  N, s, m, r, tfinal, n, tfix, nSFS, i))
 
     
     SFS /= n_forward
 
 
-    plt.semilogy(f_short, 
+    plt.loglog(f_short, 
                  moving_average(SFS, navg, start_smooth), 
-                 label = '$t =$ {}'.format(tfix), linewidth = 0.9, 
-                 color = colorlist[tind])
+                 linewidth = 5, 
+                 color = viridis_cmap(tind * 0.4))
 
     plt.vlines((tfix + L / v) / (N * L), 10 ** 3, 10 ** 11, linestyle = 'dotted',
-               linewidth = 1, color = colorlist[tind], 
-               label = r'$f = t / N + 1 / \rho v, t = $' + '{}'.format(tfix))
-    
+               linewidth = 5, color = viridis_cmap(tind * 0.4))
+    plt.text(xpositions[tind], 200, 
+             r'$t = $' + '{:.0e}'.format(tfix), 
+             color = viridis_cmap(tind * 0.4), fontsize = 50)    
     popt, pcov = curve_fit(power_law_fit, f[fit_range_ind], SFS[fit_range_ind])
     fitlist.append(popt[0])
 
 
+plt.text(10 ** (-4), 5 * 10 ** 11, 
+         r'$f = t / N + 1 / (\rho v), t = 10^3, 10^4, 10^5$', color = 'k')
 plt.loglog(f_short, 
            Un / s / f_short ** 2, 
-           label = '$p(f) = U_n / (s f^2)$', 
-           linestyle = '--', linewidth = 2)
+           label = r'$U / (s f^2)$', 
+           linestyle = '-.', linewidth = 5, color = '#0072b2')
 
-plt.loglog(f_short, np.ones(len(f_short)) * L / v, linewidth = 2, 
-           linestyle = '-.'
-              , label = '$p(f) = U_n L / v$')
+plt.loglog(f_short, np.ones(len(f_short)) * L / v, linewidth = 5, 
+           linestyle = 'dotted'
+              , label = r'$ U L / v$', color = '#d55e00')
 
 
 plt.loglog(f_short, 
            2 * Un * N * L * np.ones(len(f_short)) / f_short,
-           label = '$p(f) = 2 N U_n / f$', linestyle = 'dotted', linewidth = 2)
+           label = r'$2 N U / f$', linestyle = '-.',
+           linewidth = 5, color = '#cc79a7')
+xvals = [5 * 10 ** (-5), 5 * 10 ** (-5), 0.2]
+labelLines(plt.gca().get_lines() ,xvals = xvals, fontsize = 75)
 
 
 
-plt.title('L = {}, '.format(L)  +
-          r'$\rho =$' + '{}, s = {:.2f}, m = {:.2f}, r = {:.2f}, sample uniformly everywhere, 100 forward sims'.format(N, s, m, r))
+#plt.title('L = {}, '.format(L)  +
+#          r'$\rho =$' + '{}, s = {:.2f}, m = {:.2f}, r = {:.2f}, sample uniformly everywhere, 100 forward sims'.format(N, s, m, r))
 
-plt.legend(fontsize = 'small', loc = 'upper right')
+#plt.legend(loc = 'upper right')
 
 
 #plt.figure(figsize = (8, 6))

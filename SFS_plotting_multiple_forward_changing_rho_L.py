@@ -12,85 +12,119 @@ def power_law_fit(x, a):
     ''' Use this to fit f^-2 (intermediate f) '''
     return a * x ** (-2)
 
-plt.rcParams.update({'font.size': 15})
-plt.figure(figsize = (12, 9))
-plt.xlabel('f')
-plt.ylabel('p(f)')
+from scipy.optimize import curve_fit
+from matplotlib import cm
 
-L = 5001
-rho = 200
+from labellines import labelLines
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif', size = 60, weight = 'bold')
+plt.figure(figsize = (24, 18))
+plt.xlabel(r'Frequency, $f$', fontsize = 75)
+plt.ylabel(r'Number of alleles, $P(f)$', fontsize = 75)
+
+N = 10000000
 s = 0.05
 m = 0.25
-tfinal = 100000
+tfinal = 1000000
 Un = 1
 r = 0
-n_forward = 5
+n_forward = 100
 tfix = 0
-dx = 250
 
-l0list = np.arange(0, L, dx)
-# Change l0
+
+# Change m - sample everywhere
 n = 100000
 nSFS = 1000
 
-N = L * rho
+tfinallist = [1000000, 100000, 100000, 100000]
+rholist = [20000, 10000, 5000, 2000]
+viridis_cmap = cm.get_cmap('viridis')
+
+colorlist = ['y', 'r', 'c', 'g', 'm', 'b', 'k']
+fitlist = []
 
 f = np.arange(1, n + 1) / n
 navg = 30
 start_smooth = 100
 f_short = moving_average(f, navg, start_smooth)
 
+fit_range_ind = np.arange(200,1000)
 
 
-# Find v from lines
-l0 = 0
-freq_file = open(
-   'forward simulation/L={}_N={}_s={:.6f}_m={:.6f}_tfinal={}_l0={}_0.txt'.format(L, rho, s, m, tfinal, l0))
-lines = np.loadtxt(freq_file, dtype=np.int64)
-tf_real = len(lines)
-v_list = []
-for t in np.arange(int(tf_real / 4), int(tf_real * 3 / 4)):
-    line1 = lines[t]
-    line2 = lines[t + 1]
-    psum1 = sum(line1) / rho
-    psum2 = sum(line2) / rho
-    v_list.append(psum2 - psum1)
+xpositions = [6 * 10 ** (-5), 10 ** (-4), 10 ** (-3), 10 ** (-2)]
 
-v = np.average(v_list)
-SFS = np.zeros(n)
-for l0 in l0list:
+for rhoind in range(len(rholist)):
+    rho = rholist[rhoind]
+    L = int(N / rho)
+    tfinal = tfinallist[rhoind]
+    # Find v from lines
+
+    SFS = np.zeros(n)
+
     for i in range(n_forward):
         SFS += n * np.loadtxt(
-                'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_l0={}_navg={}_{}.txt'.format(L, 
-                    rho, s, m, r, tfinal, n, tfix, l0, nSFS, i))
+        'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
+                 rho, s, m, r, tfinal, n, tfix, nSFS, i))
+
+    
+    SFS /= n_forward
+
+    freq_file = open(
+       'forward simulation/L={}_N={}_s={:.6f}_m={:.6f}_tfinal={}_0.txt'.format(L, rho, s, m, tfinal))
+    lines = np.loadtxt(freq_file, dtype=np.int64)
+    tf_real = len(lines)
+    v_list = []
+    for t in np.arange(int(tf_real / 4), int(tf_real * 3 / 4)):
+        line1 = lines[t]
+        line2 = lines[t + 1]
+        psum1 = sum(line1) / rho
+        psum2 = sum(line2) / rho
+        v_list.append(psum2 - psum1)
+    
+    v = np.average(v_list)
+
+    plt.loglog(f_short, 
+                 moving_average(SFS, navg, start_smooth), 
+                 linewidth = 5, label = r'$\rho = $ {:.0e}, $L = $ {:.0e}'.format(rho, L), 
+                 color = viridis_cmap(rhoind * 0.4))
+
+    plt.vlines((tfix + L / v) / N, 10 ** 3, 10 ** 11, linestyle = 'dotted',
+               linewidth = 5, color = viridis_cmap(rhoind * 0.4))
+#    plt.text(xpositions[rhoind], 200, 
+#             r'$\rho = $ {:.0e}, $L = $ {:.0e}'.format(rho, L), 
+#             color = viridis_cmap(rhoind * 0.4), fontsize = 50)    
+
+    plt.loglog(f_short, np.ones(len(f_short)) * L / v, linewidth = 5, 
+               linestyle = 'dashed', 
+                  color = viridis_cmap(rhoind * 0.4))
 
 
-SFS /= n_forward * len(l0list)
+plt.legend(loc = 'upper right', fontsize = 40)
 
-SFS_smooth = moving_average(SFS, navg, start_smooth)
-plt.plot(f_short[-95000:], 
-             SFS_smooth[-95000:], 
-             linewidth = 0.9)
-plt.plot(f_short[-95000:], 2 * Un * (1 - f_short[-95000:]) * L / v, linewidth = 2, 
-           linestyle = '-.'
-              , label = r'$p(f) = 2 U_n L (1 - f) / v$')
+plt.text(5 * 10 ** (-4), 5 * 10 ** 11, 
+         r'$f = 1 / (\rho v)$', color = 'k')
+plt.text(0.15, 1.5 * 10 ** 5, 
+         r'$ U L / v$', color = 'k')
 
-#plt.vlines(1 / (rho * v), 10 ** 3, 10 ** 11, linestyle = 'dotted',
-#           linewidth = 1, 
-#           label = r'$f = 1 / \rho v$')
-#
-#plt.plot(f_short[-10000:], 
-#           Un / s / f_short[-10000:] ** 2, 
-#           label = '$p(f) = U_n / (s f^2)$', 
-#           linestyle = '--', linewidth = 2)
-
-#plt.plot(f_short[-1000:], 
-#           2 * Un * N / f_short[-1000:],
-#           label = '$p(f) = 2 N U_n / f$', linestyle = 'dotted', linewidth = 2)
+plt.loglog(f_short, 
+           Un / s / f_short ** 2, 
+           label = r'$U / (s f^2)$', 
+           linestyle = '-.', linewidth = 5, color = '#0072b2')
 
 
 
-plt.title(r'$L = {:.0e}, \rho= {:.0e}, s = {:.2f}, m = {:.2f}, r = {:.2f}$, sample uniformly everywhere, 100 forward sims'.format(L, rho, s, m, r))
+plt.loglog(f_short, 
+           2 * Un * N * np.ones(len(f_short)) / f_short,
+           label = r'$2 N U / f$', linestyle = '-.',
+           linewidth = 5, color = '#cc79a7')
+xvals = [5 * 10 ** (-5), 0.2]
 
-plt.legend(fontsize = 'small', loc = 'upper right')
+lines = plt.gca().get_lines()
+
+labelLines(lines[-2:] ,xvals = xvals, fontsize = 75)
+
+
+
+
+
 

@@ -20,10 +20,10 @@ L = 500
 N = 20000
 s = 0.05
 m = 0.25
-r = 0.000015
+r = 0.00003
 tfinal = 1000000
 nsample = 100000
-nSFS = 1000
+nSFS = 2000
 tfix = 0
 
 for n in range(100):

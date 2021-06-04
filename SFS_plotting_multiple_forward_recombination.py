@@ -46,18 +46,19 @@ tfix = 0
 # Change r - sample everywhere
 n = 100000
 nSFS = 1000
+nSFS2 = 2000
 
 r0 = 0
-r1 = 0.00015
+r1 = 0.005
 r2 = 0.0005
-r3 = 0.0015
-r4 = 0.005
-r5 = 0.015
-r6 = 0.05
+r3 = 0.00015
+r4 = 0.0005
+r5 = 0.0015
+r6 = 0.005
 
 f = np.arange(1, n + 1) / n
 navg = 50
-start_smooth = 300
+start_smooth = 50
 f_short = moving_average(f, navg, start_smooth)
 
 # Find v from lines
@@ -94,22 +95,22 @@ for i in range(n_forward):
              N, s, m, r0, tfinal, n, tfix, nSFS, i))
     SFS1 += n * np.loadtxt(
     'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-             N, s, m, r1, tfinal, n, tfix, nSFS, i))
+             N, s, m, r1, tfinal, n, tfix, nSFS2, i))
     SFS2 += n * np.loadtxt(
     'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-             N, s, m, r2, tfinal, n, tfix, nSFS, i))
-    SFS3 += n * np.loadtxt(
-    'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-             N, s, m, r3, tfinal, n, tfix, nSFS, i))
-    SFS4 += n * np.loadtxt(
-    'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-             N, s, m, r4, tfinal, n, tfix, nSFS, i))
-    SFS5 += n * np.loadtxt(
-    'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-             N, s, m, r5, tfinal, n, tfix, nSFS, i))
-    SFS6 += n * np.loadtxt(
-    'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-             N, s, m, r6, tfinal, n, tfix, nSFS, i))
+             N, s, m, r2, tfinal, n, tfix, nSFS2, i))
+#    SFS3 += n * np.loadtxt(
+#    'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
+#             N, s, m, r3, tfinal, n, tfix, nSFS, i))
+#    SFS4 += n * np.loadtxt(
+#    'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
+#             N, s, m, r4, tfinal, n, tfix, nSFS, i))
+#    SFS5 += n * np.loadtxt(
+#    'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
+#             N, s, m, r5, tfinal, n, tfix, nSFS, i))
+#    SFS6 += n * np.loadtxt(
+#    'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
+#             N, s, m, r6, tfinal, n, tfix, nSFS, i))
 
     
 SFS0 /= n_forward
@@ -126,47 +127,48 @@ SFS6 /= n_forward
 viridis_cmap = cm.get_cmap('viridis')
 plt.loglog(f_short, 
              moving_average(SFS0, navg, start_smooth), 
-             label = '$r_0 =$ {:.6f}'.format(r0), linewidth = 1.5, color = 
+             label = '$r_0 =$ {:.6f}'.format(r0), linewidth = 6, color = 
              viridis_cmap(0))
 plt.loglog(f_short, 
              moving_average(SFS1, navg, start_smooth), 
-             label = '$r_1 =$ {:.6f}'.format(r1), linewidth = 1.5, 
+             label = '$r_1 =$ {:.6f}'.format(r1), linewidth = 6, 
              color = viridis_cmap(0.2))
 plt.loglog(f_short, 
              moving_average(SFS2, navg, start_smooth), 
-             label = '$r_2 =$ {:.6f}'.format(r2), linewidth = 1.5,
+             label = '$r_2 =$ {:.6f}'.format(r2), linewidth = 6,
              color = viridis_cmap(0.4))
-plt.loglog(f_short, 
-             moving_average(SFS3, navg, start_smooth), 
-             label = '$r_3 =$ {:.6f}'.format(r3), linewidth = 1.5, 
-             color = viridis_cmap(0.6))
-plt.loglog(f_short, 
-             moving_average(SFS4, navg, start_smooth), 
-             label = '$r_4 =$ {:.6f}'.format(r4), linewidth = 1.5, 
-             color = viridis_cmap(0.8))
-plt.loglog(f_short, 
-             moving_average(SFS5, navg, start_smooth), 
-             label = '$r_5 =$ {:.6f}'.format(r5), linewidth = 1.5, 
-             color = viridis_cmap(1))
+#plt.loglog(f_short, 
+#             moving_average(SFS3, navg, start_smooth), 
+#             label = '$r_3 =$ {:.6f}'.format(r3), linewidth = 1.5, 
+#             color = viridis_cmap(0.6))
+#plt.loglog(f_short, 
+#             moving_average(SFS4, navg, start_smooth), 
+#             label = '$r_4 =$ {:.6f}'.format(r4), linewidth = 1.5, 
+#             color = viridis_cmap(0.8))
+#plt.loglog(f_short, 
+#             moving_average(SFS5, navg, start_smooth), 
+#             label = '$r_5 =$ {:.6f}'.format(r5), linewidth = 1.5, 
+#             color = viridis_cmap(1))
 
-plt.loglog(f_short, 
-             moving_average(SFS6, navg, start_smooth), 
-             label = '$r_6 =$ {:.6f}'.format(r6), linewidth = 1.5, color = 'r')
+#plt.loglog(f_short, 
+#             moving_average(SFS6, navg, start_smooth), 
+#             label = '$r_6 =$ {:.6f}'.format(r6), linewidth = 1.5, color = 'r')
 
 plt.loglog(f_short, 
            2 * Un * N * L * np.ones(len(f_short)) / f_short,
-           label = '$p(f) = 2 N U_n / f$', linestyle = '--', linewidth = 2)
+           label = r'$p(f) = 2 N U / f$', linestyle = '--', linewidth = 6, 
+           color = '#cc79a7')
 plt.loglog(f_short, 
-           Un / s / f_short ** 2, label = '$p(f) = U_n / (s f^2)$', 
-           linestyle = '--', linewidth = 2)
-plt.loglog(f_short, np.ones(len(f_short)) * L / v0, linewidth = 2, linestyle = '--'
-              , label = '$p(f) = U_n L / v$', color = 'b')
+           Un / s / f_short ** 2, label = r'$p(f) = U / (s f^2)$', 
+           linestyle = '-.', color = '#0072b2', linewidth = 6)
+plt.loglog(f_short, np.ones(len(f_short)) * L / v0, linewidth = 6, linestyle = '--'
+              , label = r'$p(f) = U L / v$', color = '#d55e00')
 
 plt.vlines(1 / (N * v0), 10 ** 3, 10 ** 11, linestyle = 'dotted',
-           linewidth = 2, color = 'b', label = r'$f = 1 / \rho v$')
+           linewidth = 6, color = '#009e73', label = r'$f = 1 / \rho v$')
 
 
-plt.title('L = {}, '.format(L) + 
-          r'$\rho =$ {}, m = {:.2f}, s = {:.2f}, sample uniformly everywhere, 100 forward sims'.format(N, m, s))
+#plt.title('L = {}, '.format(L) + 
+#          r'$\rho =$ {}, m = {:.2f}, s = {:.2f}, sample uniformly everywhere, 100 forward sims'.format(N, m, s))
 
 plt.legend(fontsize = 'medium', loc = 'lower left')

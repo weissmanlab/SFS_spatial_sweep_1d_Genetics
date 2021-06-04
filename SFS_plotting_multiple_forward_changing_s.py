@@ -14,11 +14,11 @@ def power_law_fit(x, a):
 
 from scipy.optimize import curve_fit
 
-plt.rcParams.update({'font.size': 15})
-plt.figure(figsize = (12, 9))
-plt.xlabel('f')
-plt.ylabel('p(f)')
-
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif', size = 60, weight = 'bold')
+plt.figure(figsize = (24, 18))
+plt.xlabel(r'$f$', fontsize = 75)
+plt.ylabel(r'$P(f)$', fontsize = 75)
 L = 500
 N = 20000
 s = 0.05
@@ -112,10 +112,11 @@ plt.title('L = {}, '.format(L) + r'$\rho =$'
 plt.legend(fontsize = 'medium', loc = 'upper right')
 
 
-plt.figure(figsize = (8, 6))
-plt.loglog(slist, fitlist, 'o', label = 'simulation')
-plt.loglog(slist, 2 / np.array(slist), label = '$k = 2 U_n / s$')
-plt.xlabel('s')
-plt.ylabel('k')
+plt.figure(figsize = (24, 18))
+plt.loglog(slist, fitlist, 'o',  ms = 60, label = 'simulation')
+plt.loglog(slist, 2.5 / np.array(slist), label = '$k = 2.5 U / s$', 
+           linewidth = 10)
+plt.xlabel(r'$s$')
+plt.ylabel(r'$k$')
 plt.legend()
-plt.title('fitting SFS to $f = k / f^2$')
+plt.title('fitting AFS to $P(f) = k / f^2$')
