@@ -23,7 +23,7 @@ tf_real = len(lines)
 v_list = []
 
 plt.figure(figsize = (20, 8))
-plt.plot(lines[1000] / N, linewidth = 10, color = 'k')
+plt.plot(lines[1000] / N, linewidth = 10, color = 'k', alpha = 0.4)
 plt.xlim((90, 160))
 plt.ylim((-0.01, 1.02))
 #plt.gca().axes.get_xaxis().set_visible(False)

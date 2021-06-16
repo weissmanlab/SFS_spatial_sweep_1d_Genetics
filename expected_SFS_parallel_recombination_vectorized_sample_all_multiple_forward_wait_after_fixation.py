@@ -357,30 +357,22 @@ def runner(idx):
         # print(left_individuals)
 
 
-    f = np.arange(1, n + 1) / n
-    H = np.sum(2 * f * (1 - f) * SFS) / np.sum(SFS)
 
 
     if np.mod(idx, 500) == 0:
         np.savetxt('expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_n={}_{}.txt'.format(L,
            N, s, m, r, tfinal, n, T_after_fix, n_forward, idx), SFS)
-    return SFS, H
+    return SFS
 
 if __name__ == '__main__':
 
         # this is the true sample number in case Ne < nbase.
     # print(individuals)
-    p = Pool(20)
+    p = Pool(25)
     
-    ret = p.map(runner, range(N_SFS))
-    SFS_items = [r[0] for r in ret]
-    H_items = [r[1] for r in ret]
-    SFS = np.sum(SFS_items, axis=0)
-    SFS /= N_SFS
+    SFS = np.sum(p.map(runner, range(N_SFS)), axis = 0) / N_SFS
     np.savetxt('expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L,
                 N, s, m, r, tfinal, nbase, T_after_fix, N_SFS, n_forward), SFS)
-    np.savetxt('expected_H_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L,
-                N, s, m, r, tfinal, nbase, T_after_fix, N_SFS, n_forward), H_items)
     
     
     # SFS_sum = runner(0)

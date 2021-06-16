@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 prog_str = '''#!/bin/bash
-#SBATCH -n 20                # Number of cores
+#SBATCH -n 25                # Number of cores
 #SBATCH -N 1                # Ensure that all cores are on one machine
 #SBATCH -t 7-00:00          # Runtime in D-HH:MM, minimum of 10 minutes
 #SBATCH -p shared   # Partition to submit to
-#SBATCH --mem=8000           # Memory pool for all cores (see also --mem-per-cpu)
+#SBATCH --mem=40000           # Memory pool for all cores (see also --mem-per-cpu)
 #SBATCH -o L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_all_{}.out  # File to which STDOUT will be written, %j inserts jobid
 #SBATCH -e L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tifx={}_sample_all_{}.err  # File to which STDERR will be written, %j inserts jobid
 #SBATCH  --account=arielamir_lab
@@ -20,10 +20,10 @@ L = 500
 N = 20000
 s = 0.05
 m = 0.25
-r = 0.00003
+r = 0.000001
 tfinal = 1000000
 nsample = 100000
-nSFS = 2000
+nSFS = 10000
 tfix = 0
 
 for n in range(100):
