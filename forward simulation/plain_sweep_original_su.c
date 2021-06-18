@@ -106,11 +106,11 @@ int main(int argc, char  *argv[]) {
         unsigned int n[L];
         // Leftmost demes fixed for sweeping allele
         // Fill enough demes so that it is very unlikely to die out:
-        if (1 + 10 / (N * s) > L / 2){
-            printf("Warning: meta-population is too small for selection to be strong.\n");
-            return 1;
-        }
-        for (i = 0; i < L; i++){
+      if (1 + 10 / (N * s) > L / 2){
+             printf("Warning: meta-population is too small for selection to be strong.\n");
+             return 1;
+      }
+         for (i = 0; i < L; i++){
             n[i] = 0;
         }
         
