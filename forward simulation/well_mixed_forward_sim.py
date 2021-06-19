@@ -67,5 +67,7 @@ plt.loglog(moving_average(f, 200, 1000), moving_average(SFS, 200, 1000), linewid
 plt.loglog(f, 1 / f ** 2, label = r'$P(f) = 1 / f^2$')
 plt.loglog(f, 2 * np.log(N) / f, label = r'$P(f) = 2 \ln(N) / f$')
 plt.legend(fontsize = 'medium', loc = 'upper right')
+plt.savefig('expected_SFS_well_mixed.png')
 
 np.savetxt('expected_SFS_well_mixed.txt', SFS)
+
