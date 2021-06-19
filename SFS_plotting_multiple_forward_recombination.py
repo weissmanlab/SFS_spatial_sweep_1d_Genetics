@@ -19,9 +19,6 @@ from labellines import labelLines
 
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif', size = 30, weight = 'bold')
-plt.figure(figsize = (24, 18))
-plt.xlabel(r'Frequency, $f$', fontsize = 75)
-plt.ylabel(r'Number of alleles, $P(f)$', fontsize = 75)
 
 #L = 500
 #N = 20000
@@ -47,11 +44,12 @@ tfix = 0
 n = 100000
 nSFS = 1000
 nSFS2 = 2000
+nSFS3 = 10000
 
 r0 = 0
-r1 = 0.00001
-r2 = 0.00003
-r3 = 0.00005
+r1 = 0.000001
+r2 = 0.00001
+r3 = 0.00003
 r4 = 0.0001
 r5 = 0.0005
 r6 = 0.005
@@ -96,7 +94,7 @@ for i in range(n_forward):
              N, s, m, r0, tfinal, n, tfix, nSFS, i))
     SFS1 += n * np.loadtxt(
     'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-             N, s, m, r1, tfinal, n, tfix, nSFS2, i))
+             N, s, m, r1, tfinal, n, tfix, nSFS3, i))
     SFS2 += n * np.loadtxt(
     'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
              N, s, m, r2, tfinal, n, tfix, nSFS2, i))
@@ -126,6 +124,12 @@ SFS6 /= n_forward
 
 
 plasma_cmap = cm.get_cmap('plasma')
+
+
+plt.figure(figsize = (24, 18))
+plt.xlabel(r'Frequency, $f$', fontsize = 75)
+plt.ylabel(r'Number of alleles, $P(f)$', fontsize = 75)
+
 plt.loglog(f_short, 
              moving_average(SFS0, navg, start_smooth), 
              label = '$r_0 =$ {:.6f}'.format(r0), linewidth = 2, color = 
