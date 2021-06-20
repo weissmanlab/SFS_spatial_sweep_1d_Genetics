@@ -48,8 +48,8 @@ n = 100000
 rlist = [0.005, 0.0005, 0.0001, 0.00003, 0.00001, 0.000001, 0]
 
 f = np.arange(1, n + 1) / n
-navg = 50
-start_smooth = 200
+navg = 200
+start_smooth = 400
 f_short = moving_average(f, navg, start_smooth)
 # Find v from lines
 
@@ -61,8 +61,8 @@ v_list = []
 for t in np.arange(int(tf_real / 4), int(tf_real * 3 / 4)):
     line1 = lines[t]
     line2 = lines[t + 1]
-    psum1 = sum(line1) / N
-    psum2 = sum(line2) / N
+    psum1 = sum(line1) / rho
+    psum2 = sum(line2) / rho
     v_list.append(psum2 - psum1)
 
 v0 = np.average(v_list)
@@ -81,7 +81,8 @@ plt.loglog(f_short,
 plt.loglog(f_short, np.ones(len(f_short)) * L / v0, linewidth = 6, linestyle = '--'
               , label = r'$p(f) = U L / v$', color = '#d55e00')
 
-plt.vlines(1 / (N * v0), 10 ** 3, 10 ** 11, linestyle = 'dotted',
+f_short2 = np.linspace(1 / (rho * v0), 1, 100)
+plt.vlines(1 / (rho * v0), 10 ** 3, 10 ** 11, linestyle = 'dotted',
            linewidth = 6, color = '#009e73', label = r'$f = 1 / \rho v$')
 
 
@@ -108,11 +109,11 @@ for rind in range(len(rlist)):
              moving_average(SFS, navg, start_smooth), 
              label = '$r =$ {:.6f}'.format(r), linewidth = 2, color = 
              plasma_cmap(rind / len(rlist)), alpha = 0.8)
-    if r < 10 ** (-4):
-        plt.loglog(f_short, 
-           Uneff / s / f_short ** 2, 
+    if r < 5 * 10 ** (-4):
+        plt.loglog(f_short2, 
+           2.5 * Uneff / s / f_short2 ** 2, 
            linestyle = '-.', color = plasma_cmap(rind / len(rlist)), 
-           linewidth = 6)
+           linewidth = 6, alpha = 0.8)
 
 
 
