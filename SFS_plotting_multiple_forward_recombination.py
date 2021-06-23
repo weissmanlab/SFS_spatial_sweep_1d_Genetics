@@ -45,12 +45,11 @@ tfix = 0
 n = 100000
 
 
-rlist = [0.005, 0.0005, 0.0001, 0.00003, 0.00001, 0.000001, 0]
+rlist = [0.005, 0.0005, 0.0001, 0.00003, 0.00001, 0.000003, 0.000001, 0]
 
 f = np.arange(1, n + 1) / n
-navg = 200
-start_smooth = 400
-f_short = moving_average(f, navg, start_smooth)
+start_smooth = 100
+
 # Find v from lines
 
 freq_file = open(
@@ -67,21 +66,20 @@ for t in np.arange(int(tf_real / 4), int(tf_real * 3 / 4)):
 
 v0 = np.average(v_list)
 
-plasma_cmap = cm.get_cmap('plasma')
+cividis_cmap = cm.get_cmap('cividis')
 
 
 plt.figure(figsize = (24, 18))
 plt.xlabel(r'Frequency, $f$', fontsize = 75)
 plt.ylabel(r'Number of alleles, $P(f)$', fontsize = 75)
 
-plt.loglog(f_short, 
-           2 * Un * N * np.ones(len(f_short)) / f_short,
-           label = r'$p(f) = 2 N U / f$', linestyle = '--', linewidth = 6, 
+plt.semilogy(f, 
+           2 * Un * N * np.ones(len(f)) / f,
+           label = r'$P(f) = 2 N U / f$', linestyle = '--', linewidth = 6, 
            color = '#cc79a7')
-plt.loglog(f_short, np.ones(len(f_short)) * L / v0, linewidth = 6, linestyle = '--'
-              , label = r'$p(f) = U L / v$', color = '#d55e00')
 
-f_short2 = np.linspace(1 / (rho * v0), 1, 100)
+
+f_short2 = np.linspace(3 / (rho * v0), 1, 100)
 plt.vlines(1 / (rho * v0), 10 ** 3, 10 ** 11, linestyle = 'dotted',
            linewidth = 6, color = '#009e73', label = r'$f = 1 / \rho v$')
 
@@ -89,15 +87,21 @@ plt.vlines(1 / (rho * v0), 10 ** 3, 10 ** 11, linestyle = 'dotted',
 for rind in range(len(rlist)):
     r = rlist[rind]
     Uneff = Un * (1 + 2 * N * r) 
-    if rind == 6:
+    if rind == 7:
         nSFS = 1000
-    elif rind == 5:
+        navg = 200
+    elif rind > 4 :
         nSFS = 10000
+        navg = 3000
+    elif rind == 3:
+        nSFS = 10000
+        navg = 600
     else:
         nSFS = 2000
+        navg = 600
 
     SFS = np.zeros(n)
-
+    f_short = moving_average(f, navg, start_smooth)
     for i in range(n_forward):
             SFS += n * np.loadtxt(
     'backward simulation data/expected_SFS_L=' 
@@ -105,17 +109,20 @@ for rind in range(len(rlist)):
              rho, s, m, r, tfinal, n, tfix, nSFS, i))
     
     SFS /= n_forward
-    plt.loglog(f_short, 
+    plt.semilogy(f_short, 
              moving_average(SFS, navg, start_smooth), 
-             label = '$r =$ {:.6f}'.format(r), linewidth = 2, color = 
-             plasma_cmap(rind / len(rlist)), alpha = 0.8)
-    if r < 5 * 10 ** (-4):
-        plt.loglog(f_short2, 
-           2.5 * Uneff / s / f_short2 ** 2, 
-           linestyle = '-.', color = plasma_cmap(rind / len(rlist)), 
-           linewidth = 6, alpha = 0.8)
+             label = '$r =$ {:.1e}'.format(r), linewidth = 2, color = 
+             cividis_cmap(rind / len(rlist)), alpha = 0.8)
+    if r < 5 * 10 ** (-3):
+#        plt.semilogy(f_short2, 
+#           2.5 * Uneff / s / f_short2 ** 2, 
+#           linestyle = '-.', color = cividis_cmap(rind / len(rlist)), 
+#           linewidth = 6, alpha = 0.8)
+        plt.semilogy(f_short, Uneff * np.ones(len(f_short)) * L / v0,
+                   linewidth = 6, linestyle = '--'
+                   , color = cividis_cmap(rind / len(rlist)), alpha = 0.8)
 
 
 
-plt.legend(fontsize = 'medium', loc = 'lower left')
+plt.legend(fontsize = 'small', loc = 'upper right')
 
