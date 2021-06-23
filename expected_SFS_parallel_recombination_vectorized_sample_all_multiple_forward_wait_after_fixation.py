@@ -359,7 +359,7 @@ def runner(idx):
 
 
 
-    if np.mod(idx, 500) == 0:
+    if np.mod(idx, 1000) == 0:
         np.savetxt('expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_n={}_{}.txt'.format(L,
            N, s, m, r, tfinal, n, T_after_fix, n_forward, idx), SFS)
     return SFS

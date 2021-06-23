@@ -48,7 +48,6 @@ n = 100000
 rlist = [0.005, 0.0005, 0.0001, 0.00003, 0.00001, 0.000003, 0.000001, 0]
 
 f = np.arange(1, n + 1) / n
-start_smooth = 100
 
 # Find v from lines
 
@@ -73,7 +72,7 @@ plt.figure(figsize = (24, 18))
 plt.xlabel(r'Frequency, $f$', fontsize = 75)
 plt.ylabel(r'Number of alleles, $P(f)$', fontsize = 75)
 
-plt.semilogy(f, 
+plt.loglog(f, 
            2 * Un * N * np.ones(len(f)) / f,
            label = r'$P(f) = 2 N U / f$', linestyle = '--', linewidth = 6, 
            color = '#cc79a7')
@@ -82,23 +81,23 @@ plt.semilogy(f,
 f_short2 = np.linspace(3 / (rho * v0), 1, 100)
 plt.vlines(1 / (rho * v0), 10 ** 3, 10 ** 11, linestyle = 'dotted',
            linewidth = 6, color = '#009e73', label = r'$f = 1 / \rho v$')
-
+plt.text(10 ** (-3) / 2, 8 * 10 ** 11, r'$P(f) = 2.5 U_{eff} / s f^2, U_{eff} = U (1 + 2 N r) $')
 
 for rind in range(len(rlist)):
     r = rlist[rind]
     Uneff = Un * (1 + 2 * N * r) 
     if rind == 7:
+        start_smooth = 300
         nSFS = 1000
+        navg = 30
+    elif rind > 2 :
+        start_smooth = 100
+        nSFS = 10000
         navg = 200
-    elif rind > 4 :
-        nSFS = 10000
-        navg = 3000
-    elif rind == 3:
-        nSFS = 10000
-        navg = 600
     else:
+        start_smooth = 300
         nSFS = 2000
-        navg = 600
+        navg = 100
 
     SFS = np.zeros(n)
     f_short = moving_average(f, navg, start_smooth)
@@ -109,20 +108,20 @@ for rind in range(len(rlist)):
              rho, s, m, r, tfinal, n, tfix, nSFS, i))
     
     SFS /= n_forward
-    plt.semilogy(f_short, 
+    plt.loglog(f_short, 
              moving_average(SFS, navg, start_smooth), 
              label = '$r =$ {:.1e}'.format(r), linewidth = 2, color = 
              cividis_cmap(rind / len(rlist)), alpha = 0.8)
     if r < 5 * 10 ** (-3):
-#        plt.semilogy(f_short2, 
-#           2.5 * Uneff / s / f_short2 ** 2, 
-#           linestyle = '-.', color = cividis_cmap(rind / len(rlist)), 
-#           linewidth = 6, alpha = 0.8)
-        plt.semilogy(f_short, Uneff * np.ones(len(f_short)) * L / v0,
-                   linewidth = 6, linestyle = '--'
-                   , color = cividis_cmap(rind / len(rlist)), alpha = 0.8)
+        plt.loglog(f_short2, 
+           2.5 * Uneff / s / f_short2 ** 2, 
+           linestyle = '-.', color = cividis_cmap(rind / len(rlist)), 
+           linewidth = 6, alpha = 0.8)
+#        plt.loglog(f_short, Uneff * np.ones(len(f_short)) * L / v0,
+#                   linewidth = 6, linestyle = '--'
+#                   , color = cividis_cmap(rind / len(rlist)), alpha = 0.8)
 
 
 
-plt.legend(fontsize = 'small', loc = 'upper right')
+plt.legend(fontsize = 'small', loc = 'lower left')
 
