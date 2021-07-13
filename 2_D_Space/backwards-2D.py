@@ -44,10 +44,10 @@ fname = 'Data_Reshape_528.txt'
 freq_file = open(fname)
 lines = np.loadtxt(fname, dtype=np.int64)
 lines = lines.reshape(tfinal, L,L)  ###lines = Data from forward simulation
-"""Flatten lines[i] into 1-D array here"""
 
-# a/b, except = 0 when b = 0
-# https://stackoverflow.com/questions/26248654/how-to-return-0-with-divide-by-zero
+"""Flatten lines[i] into 1-D array here for use"""
+lines = [lines[i].flatten() for i in range(len(lines))]
+
 def safe_divide(a, b, val=0):
     return np.divide(a, b, out=np.full_like(a, val), where=b != 0)
 
@@ -68,21 +68,19 @@ def get_parent_presweep_arr_new(inds):
     deme_arr_new = np.zeros_like(deme_arr)  ##Where the mutation goes after migration
     ind_in_deme_arr_new = np.zeros_like(ind_in_deme_arr)
 
-
     len_inds = len(inds)
     # array of random numbers used to determine which deme the parent is in.
     which_deme_rand = random.random(len_inds)
     # random numbers used to determine which individual to pick in each deme.
     choice_rand = random.random(len_inds)  
-    """Should be rho?"""
-    
+
     
     """Creating Cummulative Probablities of each direction"""
     left_range_prob = m / 4. # prob of going to the left deme
     right_range_prob = 2*m / 4. # prob of going to the right deme
     top_range_prob = 3*m / 4. # prob of going to the upper deme
     bottom_range_prob = 4*m / 4. # prob of going to the bottom deme
-    mid_range_prob = 1. - m # Prob of remaining in the deme
+    mid_range_prob = 1. - m # Prob of remaining in the same deme
     # Sum of these 5 probablities is 1
 
 
@@ -90,12 +88,12 @@ def get_parent_presweep_arr_new(inds):
     #Only one of these cases will evaluate to true for a given which_deme_rand and hence only one case will be executed. 
 
     left_idxs = np.where(which_deme_rand < left_range_prob)[0]
-    deme_arr_new[left_idxs] = (deme_arr[left_idxs] + [(L-1) if deme_arr[left_idx]%L == 0 else -1][0] ).astype(np.int64)
+    deme_arr_new[left_idxs] = (deme_arr[left_idxs] + [(L-1) if deme_arr[left_idxs]%L == 0 else -1][0] ).astype(np.int64)
     
     right_idxs = np.where(np.logical_and(
         which_deme_rand > left_range_prob,
         which_deme_rand < right_range_prob))[0]
-    deme_arr_new[right_idxs] = (deme_arr[right_idxs] + [-(L-1) if (deme_arr[right_idx]+1)%L == 0 else 1][0] ).astype(np.int64)
+    deme_arr_new[right_idxs] = (deme_arr[right_idxs] + [-(L-1) if (deme_arr[right_idxs]+1)%L == 0 else 1][0] ).astype(np.int64)
 
     top_idxs = np.where(np.logical_and(
         which_deme_rand > right_range_prob,
@@ -109,6 +107,7 @@ def get_parent_presweep_arr_new(inds):
 
     mid_idxs = np.where(which_deme_rand > bottom_range_prob)[0]
     deme_arr_new[mid_idxs] = (deme_arr[mid_idxs]).astype(np.int64)
+
 
     """
     Note: The addition and subtraction of indexes is to do migration in 2-D space in a 1-D array. 
@@ -132,10 +131,21 @@ def get_parent_presweep_arr_new(inds):
 
 def get_individuals2_new(Ne, Ne_parent, individuals):
     '''
-    for each bucket, choose between neighboring/own buckets w/ relative
-    probabilities [m/2, 1-m] respectively.
+    for each bucket, choose between neighboring/own buckets with relative
+    probabilities [m/4 for each neighbor and 1-m for being in the same bucket.
     
-    Input Arguements: Ne, Ne_Parents (Arrays of populations), individuals which is same as inds previously and has three parameters (mutation, which deme, number within deme)
+    Input Arguements: Ne, Ne_Parents (Arrays of populations), individuals which is same as inds previously and has three values (mutation, which deme, number within deme)
+    
+    left, right, top, bottom are the neighbors. Mid is the same deme with no migration/probablity 
+    
+    Migration patterns from a given index i:
+    Top = (i-L)%(L*L)
+    Bottom = (i+L)%(L*)
+    Right = i + [-(L-1) if (i+1)%L ==0 else 1][0]
+    Left = i + [(L-1) if (i)%L ==0 else -1][0]
+    
+    This takes care of edge cases also
+
     '''
     
     mut_types, deme_arr, ind_in_deme_arr = individuals.T
@@ -146,70 +156,127 @@ def get_individuals2_new(Ne, Ne_parent, individuals):
 
     deme_arr_next = np.zeros_like(deme_arr)
     ind_in_deme_arr_next = np.zeros_like(ind_in_deme_arr)
-    Ne_parent_extended = np.concatenate(([Ne_parent[0]], Ne_parent, [Ne_parent[-1]]))
-    """Why this step??"""
-
+    Ne_parent_extended = Ne_parent 
+    ###Legacy name from Jiseons's code. Change name later
 
     len_inds = len(deme_arr_next)
+    
+    #For mutant first, find the parent's deme and then its index inside the deme
+    #Format for list conditional [A[i] if i%2 == 0 else -A[i] for i in range(len(A))]
 
-    # For mutant first, find the parent's deme and then its index inside the deme
-    left_parent_prob = m / 2 * np.take(Ne_parent_extended, deme_arr)
-    mid_parent_prob = (1 - m) * np.take(Ne_parent_extended, deme_arr + 1)
-    right_parent_prob = m / 2 * np.take(Ne_parent_extended, deme_arr + 2)
-    total_prob = (left_parent_prob + mid_parent_prob + right_parent_prob)
+    left_parent_prob = m / 4 * np.take(Ne_parent_extended, [(deme_arr[i] + L-1) if i%L == 0 else (deme_arr[i]-1) for i in range(len(deme_arr))])
+    right_parent_prob = m / 4 * np.take(Ne_parent_extended,[(deme_arr[i] - (L-1)) if (i+1)%L == 0 else (deme_arr[i]+1) for i in range(len(deme_arr))])    
+    top_parent_prob = m / 4 * np.take(Ne_parent_extended, ((deme_arr-L)%(L*L)))
+    bottom_parent_prob = m / 4 * np.take(Ne_parent_extended, ((deme_arr+L)%(L*L)))
+    mid_parent_prob = (1 - m) * np.take(Ne_parent_extended, deme_arr)
+    total_prob = (left_parent_prob + right_parent_prob + top_parent_prob + bottom_parent_prob + mid_parent_prob)
 
     # Set the cumulative probability
-    mid_parent_prob = safe_divide(left_parent_prob + mid_parent_prob,total_prob,val=1,)
-    left_parent_prob = safe_divide(left_parent_prob, total_prob)
-
+    left_parent_prob_cumulative = safe_divide(left_parent_prob, total_prob)
+    right_parent_prob_cumulative = safe_divide(left_parent_prob  + right_parent_prob, total_prob)
+    top_parent_prob_cumulative = safe_divide(left_parent_prob  + right_parent_prob+ top_parent_prob, total_prob)
+    bottom_parent_prob_cumulative = safe_divide(left_parent_prob  + right_parent_prob + top_parent_prob + bottom_parent_prob, total_prob)
+    mid_parent_prob_cumulative = 1 - bottom_parent_prob_cumulative
 
     which_parent_rand = random.random(len_inds) # to choose btw left/mid/right/top/bottom
     choice_rand = random.random(len_inds) # used for index within the deme
-    """Should be rho?"""
 
     left_parent_idxs = np.where(np.logical_and(
-        which_parent_rand < left_parent_prob,
+        which_parent_rand < left_parent_prob_cumulative,
         mut_types_next == 1))[0]
-    deme_arr_next[left_parent_idxs] = (deme_arr[left_parent_idxs] - 1).astype(np.int64)
+    deme_arr_next[left_parent_idxs] = (deme_arr[left_parent_idxs] + [(L-1) if deme_arr[left_parent_idxs]%L == 0 else -1][0]).astype(np.int64)
 
-
-
-    mid_parent_idxs = np.where(np.logical_and.reduce((
-        which_parent_rand > left_parent_prob,
-        which_parent_rand < mid_parent_prob,
+    right_parent_idxs = np.where(np.logical_and.reduce((
+        which_parent_rand > left_parent_prob_cumulative,
+        which_parent_rand < right_parent_prob_cumulative,
         mut_types_next == 1)))[0]
+    deme_arr_next[right_parent_idxs] = (deme_arr[right_parent_idxs] + [-(L-1) if (deme_arr[right_parent_idxs]+1)%L == 0 else 1][0]).astype(np.int64)
+
+    top_parent_idxs = np.where(np.logical_and.reduce((
+        which_parent_rand > right_parent_prob_cumulative,
+        which_parent_rand < top_parent_prob_cumulative,
+        mut_types_next == 1)))[0]
+    deme_arr_next[top_parent_idxs] = (((deme_arr[top_parent_idxs]+L)%(L*L))).astype(np.int64)
+
+    bottom_parent_idxs = np.where(np.logical_and.reduce((
+        which_parent_rand > top_parent_prob_cumulative,
+        which_parent_rand < bottom_parent_prob_cumulative,
+        mut_types_next == 1)))[0]
+    deme_arr_next[bottom_parent_idxs] = (((deme_arr[bottom_parent_idxs]+L)%(L*L))).astype(np.int64)
+
+    mid_parent_idxs = np.where(np.logical_and(
+        which_parent_rand > bottom_parent_prob_cumulative,
+        mut_types_next == 1))[0]
     deme_arr_next[mid_parent_idxs] = (deme_arr[mid_parent_idxs]).astype(np.int64)
-
-
-    right_parent_idxs = np.where(np.logical_and(
-        which_parent_rand > mid_parent_prob,
-        mut_types_next ==1))[0]
-    deme_arr_next[right_parent_idxs] = (deme_arr[right_parent_idxs] + 1).astype(np.int64)
-
-    left_edge_idxs = np.where(deme_arr_next < 0)[0]
-    deme_arr_next[left_edge_idxs] = (np.zeros_like(left_edge_idxs)).astype(np.int64)
-
-    right_edge_idxs = np.where(deme_arr_next > L - 1)[0]
-    deme_arr_next[right_edge_idxs] = (np.ones_like(right_edge_idxs) *
-                                      (L - 1)).astype(np.int64)
-
-
-
 
     mut_idxs = np.concatenate((left_parent_idxs, mid_parent_idxs, right_parent_idxs))
     ind_in_deme_arr_next[mut_idxs] = (np.floor(
         choice_rand[mut_idxs] * np.take(Ne_parent,
                               deme_arr_next[mut_idxs]))).astype(np.int64)
 
-    # then same for wt
-    
+
+    #Next for Wildtype find the parent's deme and then its index inside the deme
+
+    """Do i need to calculate it twice??"""
+    left_parent_prob = m / 4 * np.take(Ne_parent_extended, [(deme_arr[i] + L-1) if i%L == 0 else (deme_arr[i]-1) for i in range(len(deme_arr))])
+    right_parent_prob = m / 4 * np.take(Ne_parent_extended,[(deme_arr[i] - (L-1)) if (i+1)%L == 0 else (deme_arr[i]+1) for i in range(len(deme_arr))])    
+    top_parent_prob = m / 4 * np.take(Ne_parent_extended, ((deme_arr-L)%(L*L)))
+    bottom_parent_prob = m / 4 * np.take(Ne_parent_extended, ((deme_arr+L)%(L*L)))
+    mid_parent_prob = (1 - m) * np.take(Ne_parent_extended, deme_arr)
+    total_prob = (left_parent_prob + right_parent_prob + top_parent_prob + bottom_parent_prob + mid_parent_prob)
+
+    # Set the cumulative probability
+    left_parent_prob_cumulative = safe_divide(left_parent_prob, total_prob)
+    right_parent_prob_cumulative = safe_divide(left_parent_prob  + right_parent_prob, total_prob)
+    top_parent_prob_cumulative = safe_divide(left_parent_prob  + right_parent_prob+ top_parent_prob, total_prob)
+    bottom_parent_prob_cumulative = safe_divide(left_parent_prob  + right_parent_prob + top_parent_prob + bottom_parent_prob, total_prob)
+    mid_parent_prob_cumulative = 1 - bottom_parent_prob_cumulative
+
+    which_parent_rand = random.random(len_inds) # to choose btw left/mid/right/top/bottom
+    choice_rand = random.random(len_inds) # used for index within the deme
+
+    left_parent_idxs = np.where(np.logical_and(
+        which_parent_rand < left_parent_prob_cumulative,
+        mut_types_next == 0))[0]
+    deme_arr_next[left_parent_idxs] = (deme_arr[left_parent_idxs] + [(L-1) if deme_arr[left_parent_idxs]%L == 0 else -1][0]).astype(np.int64)
+
+    right_parent_idxs = np.where(np.logical_and.reduce((
+        which_parent_rand > left_parent_prob_cumulative,
+        which_parent_rand < right_parent_prob_cumulative,
+        mut_types_next == 0)))[0]
+    deme_arr_next[right_parent_idxs] = (deme_arr[right_parent_idxs] + [-(L-1) if (deme_arr[right_parent_idxs]+1)%L == 0 else 1][0]).astype(np.int64)
+
+    top_parent_idxs = np.where(np.logical_and.reduce((
+        which_parent_rand > right_parent_prob_cumulative,
+        which_parent_rand < top_parent_prob_cumulative,
+        mut_types_next == 0)))[0]
+    deme_arr_next[top_parent_idxs] = (((deme_arr[top_parent_idxs]+L)%(L*L))).astype(np.int64)
+
+    bottom_parent_idxs = np.where(np.logical_and.reduce((
+        which_parent_rand > top_parent_prob_cumulative,
+        which_parent_rand < bottom_parent_prob_cumulative,
+        mut_types_next == 0)))[0]
+    deme_arr_next[bottom_parent_idxs] = (((deme_arr[bottom_parent_idxs]+L)%(L*L))).astype(np.int64)
+
+    mid_parent_idxs = np.where(np.logical_and(
+        which_parent_rand > bottom_parent_prob_cumulative,
+        mut_types_next == 0))[0]
+    deme_arr_next[mid_parent_idxs] = (deme_arr[mid_parent_idxs]).astype(np.int64)
+
+    wt_idxs = np.concatenate((left_parent_idxs, mid_parent_idxs, right_parent_idxs))
+    ind_in_deme_arr_next[wt_idxs] = (np.floor(
+        choice_rand[wt_idxs] * np.take(Ne_parent,
+                              deme_arr_next[wt_idxs]))).astype(np.int64)
+
+
+    ###Recreate the data structure we had for passing into function
     individuals2 = np.vstack((mut_types_next,
                               deme_arr_next,
                               ind_in_deme_arr_next)).T
     return individuals2
 
 
-"""
+
 def runner(idx):
     Ne_0 = lines[-1]
     n = nbase
@@ -350,7 +417,7 @@ if __name__ == '__main__':
 
         # this is the true sample number in case Ne < nbase.
     # print(individuals)
-    p = Pool(20)
+    p = Pool(2)
     
     ret = p.map(runner, range(N_SFS))
     SFS_items = [r[0] for r in ret]
@@ -372,4 +439,3 @@ if __name__ == '__main__':
     #             N, s, m, r, tfinal, nbase, Un, N_SFS), SFS)
     
     
-"""
