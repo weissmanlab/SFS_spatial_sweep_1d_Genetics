@@ -112,6 +112,8 @@ for rind in range(len(rlist)):
              moving_average(SFS, navg, start_smooth), 
              label = '$r =$ {:.1e}'.format(r), linewidth = 2, color = 
              cividis_cmap(rind / len(rlist)), alpha = 0.8)
+    print('{:.1e}'.format(r))
+    print(SFS[-2:])
     if r < 5 * 10 ** (-3):
         plt.loglog(f_short2, 
            2.5 * Uneff / s / f_short2 ** 2, 

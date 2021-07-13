@@ -360,7 +360,7 @@ def runner(idx):
 
 
     if np.mod(idx, 1000) == 0:
-        np.savetxt('expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_n={}_{}.txt'.format(L,
+        np.savetxt('expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.7f}_tfinal={}_nsample={}_tfix={}_sample_uniform_n={}_{}.txt'.format(L,
            N, s, m, r, tfinal, n, T_after_fix, n_forward, idx), SFS)
     return SFS
 
@@ -371,7 +371,7 @@ if __name__ == '__main__':
     p = Pool(25)
     
     SFS = np.sum(p.map(runner, range(N_SFS)), axis = 0) / N_SFS
-    np.savetxt('expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L,
+    np.savetxt('expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.7f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L,
                 N, s, m, r, tfinal, nbase, T_after_fix, N_SFS, n_forward), SFS)
     
     

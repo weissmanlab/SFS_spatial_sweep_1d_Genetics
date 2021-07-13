@@ -71,64 +71,64 @@ for i in range(n_forward):
 SFS /= n_forward
 
 #####################################
-#plt.loglog(f_short, 
-#             moving_average(SFS, navg, start_smooth), 
-#             linewidth = 12, color = 'k')
-#
-##plt.vlines(1 / (N * v), 10 ** (-2), 10 ** 15, linestyle = 'dotted',
-##           linewidth = 10, color = '#009e73')
-#
-##vline = plt.axvline(1 / (N * v), 10 ** 3, 10 ** 11, linestyle = 'dotted',
-##           linewidth = 10)
-#
-##plt.text(0.0004, 50, r'$\boldmath{f = 1 / \rho v}$', 
-##         color = '#009e73', fontsize = 150)
-#
-#
-#neutral, = plt.loglog(f_short, 
-#           2 * Un * N * L * np.ones(len(f_short)) / f_short,
-#           label = r'$\boldmath{2 N U / f}$', linestyle = '--', linewidth = 12,
-#           color = '#cc79a7')
-#
-#
-#bsc, = plt.loglog(f_short, 
-#           Un / s / f_short ** 2, label = r'$\boldmath{U / (s f^2)}$', 
-#           linestyle = '-.', linewidth = 12, color = '#0072b2')
-#
-#
-#flat, = plt.loglog(f_short, np.ones(len(f_short)) * L / v, linewidth = 12, 
-#           linestyle = 'dotted'
-#              , label = r'$\boldmath{U L / v}$', color = '#d55e00')
-#
-#xvals = [0.002, 0.0002, 0.01]
-#labelLines(plt.gca().get_lines() ,xvals = xvals, fontsize = 150)
-#
-#
-#
-#
-#
-#
-##vline_legend = plt.legend(handles = [vline], loc = (0.02, 0.03), 
-##                          fontsize = 'small')
-##plt.gca().add_artist(vline_legend)
-#
-#plt.show()
-
-##########################3
-plt.rc('font', family='serif', size = 150, weight = 'bold')
-plt.figure(figsize = (24, 12))
-#plt.xlabel(r'Frequency, $f$')
-#plt.ylabel(r'Number of alleles, $P(f)$')
-
-plt.semilogy(f_short, 
+plt.loglog(f_short, 
              moving_average(SFS, navg, start_smooth), 
-             linewidth = 10, color = 'k')
-flat, = plt.semilogy(f_short, np.ones(len(f_short)) * L / v, linewidth = 30, 
-           linestyle = 'dotted' 
-              , label = r'$U_n L / v$', color = '#d55e00')
-plt.locator_params(axis='x', nbins = 3)
-plt.ylim((10, 5 * 10 ** 6))
+             linewidth = 12, color = 'k')
+
+#plt.vlines(1 / (N * v), 10 ** (-2), 10 ** 15, linestyle = 'dotted',
+#           linewidth = 10, color = '#009e73')
+
+#vline = plt.axvline(1 / (N * v), 10 ** 3, 10 ** 11, linestyle = 'dotted',
+#           linewidth = 10)
+
+#plt.text(0.0004, 50, r'$\boldmath{f = 1 / \rho v}$', 
+#         color = '#009e73', fontsize = 150)
+
+
+neutral, = plt.loglog(f_short, 
+           2 * Un * N * L * np.ones(len(f_short)) / f_short,
+           label = r'$\boldmath{2 N U / f}$', linestyle = '--', linewidth = 12,
+           color = '#cc79a7')
+
+
+bsc, = plt.loglog(f_short, 
+           Un / s / f_short ** 2, label = r'$\boldmath{U / (s f^2)}$', 
+           linestyle = '-.', linewidth = 12, color = '#0072b2')
+
+
+flat, = plt.loglog(f_short, np.ones(len(f_short)) * L / v, linewidth = 12, 
+           linestyle = 'dotted'
+              , label = r'$\boldmath{U L / v}$', color = '#d55e00')
+
+xvals = [0.002, 0.0002, 0.01]
+labelLines(plt.gca().get_lines() ,xvals = xvals, fontsize = 150)
+
+
+
+
+
+
+#vline_legend = plt.legend(handles = [vline], loc = (0.02, 0.03), 
+#                          fontsize = 'small')
+#plt.gca().add_artist(vline_legend)
 
 plt.show()
+
+##########################3
+#plt.rc('font', family='serif', size = 150, weight = 'bold')
+#plt.figure(figsize = (24, 12))
+##plt.xlabel(r'Frequency, $f$')
+##plt.ylabel(r'Number of alleles, $P(f)$')
+#
+#plt.semilogy(f_short, 
+#             moving_average(SFS, navg, start_smooth), 
+#             linewidth = 10, color = 'k')
+#flat, = plt.semilogy(f_short, np.ones(len(f_short)) * L / v, linewidth = 30, 
+#           linestyle = 'dotted' 
+#              , label = r'$U_n L / v$', color = '#d55e00')
+#plt.locator_params(axis='x', nbins = 3)
+#plt.ylim((10, 5 * 10 ** 6))
+#
+#plt.show()
 
 

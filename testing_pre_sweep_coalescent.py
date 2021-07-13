@@ -17,7 +17,7 @@ def moving_average(a, n = 3, start_smooth = 30):
     return np.concatenate((a_start, ret[n - 1:] / n))
 
 N = 10000000
-nsample = 20000
+nsample = 10000
 nsim = 10
 
 def main():
