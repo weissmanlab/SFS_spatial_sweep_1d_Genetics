@@ -25,10 +25,13 @@ def moving_average(a, n = 3, start_smooth = 100):
     ret[n:] = ret[n:] - ret[:-n]
     return np.concatenate((a_start, ret[n - 1:] / n))
 
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif', size = 60, weight = 'bold')
+
 plt.figure(figsize = (24, 18))
 plt.loglog(moving_average(f, 200, 1000), moving_average(well_mixed_SFS, 200, 1000), linewidth = 2)
 
-plt.loglog(f, 2 * np.log(N) / f, label = r'$P(f) = 2 \ln(N) U_n / f$')
+plt.loglog(f, 1 / f / s, label = r'$P(f) = U_n / sf$')
 plt.loglog(f, 1 / f ** 2 / N / s, label = r'$P(f) = U_n / N sf^2$')
 
-plt.legend(fontsize = 'medium', loc = 'upper right')
+plt.legend(fontsize = 'medium', loc = 'lower left')
