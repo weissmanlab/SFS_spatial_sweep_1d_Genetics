@@ -7,10 +7,10 @@ Created on Thu Jun 17 14:46:16 2021
 
 import numpy as np
 import matplotlib.pyplot as plt
-N = 10 ** 5
-s = 0.04
+N = 4 * 10 ** 5
+s = 0.05
 N_sim = 500
-nsample = 10 ** 4
+nsample = 4 * 10 ** 4
 T_after_fix = 0
 
 n_sim = 0
