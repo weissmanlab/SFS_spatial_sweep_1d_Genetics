@@ -4,7 +4,7 @@ Created on Tue Jul 13 18:14:22 2021
 
 @author: jim903
 """
-Nlist = [10 ** 5, 2 * 10 ** 5, 4 * 10 ** 5, 6 * 10 ** 5, 8 * 10 ** 5, 
+Nlist = [2 * 10 ** 5, 4 * 10 ** 5, 6 * 10 ** 5, 8 * 10 ** 5, 
          10 ** 6, 2 * 10 ** 6, 4 * 10 ** 6]
 s = 0.05
 Tfix = 0
@@ -26,6 +26,11 @@ plt.rc('text', usetex=True)
 plt.rc('font', family='serif', size = 60, weight = 'bold')
 plt.figure(figsize = (24, 18))
 
+f = np.arange(10 ** (-6), 1 + 10 ** (-6), 10 ** (-6))
+
+plt.loglog(f, 1 / f / s, label = r'$1 / sf$', 
+               linewidth = 2, linestyle = '-.', color = 'k')
+
 for Nind in range(len(Nlist)):
     N = Nlist[Nind]
     well_mixed_SFS = np.loadtxt(
@@ -37,13 +42,11 @@ for Nind in range(len(Nlist)):
 
 
 
-    plt.loglog(moving_average(f, 200, 1000), moving_average(well_mixed_SFS, 200
-               , 1000), linewidth = 2, color = viridis_cmap(Nind * 0.1)
+    plt.loglog(moving_average(f, 200, 300), moving_average(well_mixed_SFS, 200
+               , 300), linewidth = 2, color = viridis_cmap(Nind * 0.1)
                 , label = r'$N =${:.0e}'.format(N))
 
-    plt.loglog(f, np.log(N * s) / f / s, color = viridis_cmap(Nind * 0.1), 
-               linewidth = 2, linestyle = '-.')
-    plt.loglog(f, 1 / f ** 2 / N / s, color = viridis_cmap(Nind * 0.1),
+    plt.loglog(f, 10 / f ** 2 / N / s, color = viridis_cmap(Nind * 0.1),
                linewidth = 2, linestyle = '--')
 
 plt.legend(fontsize = 'medium', loc = 'lower left')

@@ -12,7 +12,6 @@ def power_law_fit(x, a):
     ''' Use this to fit f^-2 (intermediate f) '''
     return a * x ** (-2)
 
-from scipy.optimize import curve_fit
 from matplotlib import cm
 
 from labellines import labelLines

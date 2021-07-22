@@ -7,10 +7,10 @@ Created on Thu Jun 17 14:46:16 2021
 
 import numpy as np
 import matplotlib.pyplot as plt
-N = 4 * 10 ** 5
+N = 2 * 10 ** 5
 s = 0.05
 N_sim = 500
-nsample = 4 * 10 ** 4
+nsample = 10 ** 4
 T_after_fix = 0
 
 n_sim = 0
@@ -46,8 +46,8 @@ while n_sim < N_sim:
             SFS += hist
             n_inds = len(unique)
         while t < T_sweep - 1:
-            t += 1
 #            print(t)
+            t += 1
             Ne = n_selected_series[-t - 1]
             inds_new = np.random.randint(Ne, size = n_inds)
             inds_new_repeat = np.repeat(inds_new, leaf_counts, axis = 0)
@@ -58,7 +58,9 @@ while n_sim < N_sim:
             SFS += hist
             n_inds = len(unique)
             
+            
 SFS /= N_sim
+SFS *= nsample
 
 def moving_average(a, n = 3, start_smooth = 100):
     a_start = a[:start_smooth]
@@ -75,10 +77,10 @@ plt.xlabel(r'$f$', fontsize = 75)
 plt.ylabel(r'$P(f)$', fontsize = 75)
 
 plt.loglog(moving_average(f, 20, 100), moving_average(SFS, 20, 100), linewidth = 2)
-plt.loglog(f, 1 / f ** 2 / N / s, label = r'$P(f) = U_n / N sf^2$')
-plt.loglog(f, 1 / f / s, label = r'$P(f) = U_n / sf$')
+plt.loglog(f, 1 / f ** 2 / s, label = r'$P(f) = U_n / sf^2$')
+plt.loglog(f, 2 * N / f, label = r'$P(f) = 2 N U_n / f$')
 plt.legend(fontsize = 'medium', loc = 'upper right')
 plt.savefig('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}.png'.format(N, T_after_fix, s))
 
-np.savetxt('expected_SFS_well_mixed_N={}.txt'.format(N), SFS)
+np.savetxt('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}.txt'.format(N, T_after_fix, s), SFS)
 
