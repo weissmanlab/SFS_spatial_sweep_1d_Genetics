@@ -7,12 +7,12 @@ Created on Thu Jun 17 14:46:16 2021
 
 import numpy as np
 import matplotlib.pyplot as plt
-N = 10 ** 4
+N = 10 ** 5
 s = 0.05
-N_sim = 100
-nsample = 5 * 10 ** 3
+N_sim = 500
+nsample = 10 ** 3
 T_after_fix = 0
-r = 10 ** (-4)
+r = 5 * 10 ** (-5)
 
 n_sim = 0
 SFS = np.zeros(nsample)
@@ -59,14 +59,39 @@ while n_sim < N_sim:
             Ne_current = n_selected_series[-t]
             
             mut_types_next = mut_types
-            n_recom = np.random.poisson(len(individuals) * r)
-            idx_recom = np.random.randint(len(individuals), size = n_recom)
-            for i in range(n_recom):
-                p = np.random.random()
-                if p < Ne_current / N:
-                    mut_types_next[idx_recom[i]] = 1
-                else:
-                    mut_types_next[idx_recom[i]] = 0
+            
+            n_recom = np.random.poisson(N * r)
+            idx_recom = np.random.randint(N, size = n_recom)
+            
+            for idx in idx_recom:
+                idx_of_individuals = np.where(idx in idxs)[0]
+                if len(idx_of_individuals) == 1:
+                    p = np.random.random()
+                    if mut_types_next[idx_of_individuals] < 1 and p < Ne_current / N:
+                        mut_types_next[idx_of_individuals] = 1
+                    elif mut_types_next[idx_of_individuals] > 0 and p < (N - Ne_current) / N:
+                        mut_types_next[idx_of_individuals] = 0
+                    
+            
+#            p_vals = np.random.random(len(individuals))
+#            for i in range(len(individuals)):
+#                if mut_types_next[i] < 1: # WT
+#                    if p_vals[i] < r * Ne_current / N:
+#                        mut_types_next[i] = 1
+#                else:
+#                    if p_vals[i] < r * (N - Ne_current) / N:
+#                        mut_types_next[i] = 0
+            
+#            mut_types_next = mut_types
+#            n_recom = np.random.poisson(len(individuals) * r)
+#            idx_recom = np.random.randint(len(individuals), size = n_recom)
+#            for i in range(n_recom):
+#                p = np.random.random()
+#                if p < Ne_current / N:
+#                    mut_types_next[idx_recom[i]] = 1
+#                else:
+#                    mut_types_next[idx_recom[i]] = 0
+
             
 #            mut_types_next = np.ones_like(mut_types)
 ##            print(t)
@@ -79,8 +104,8 @@ while n_sim < N_sim:
 #            mut_types_next[zero_idxs] = 0
 #            mut_types_next[zero_idxs2] = 0
             
-            n_mut_next = sum(mut_types_next > 0)
-            n_wt_next = len(individuals) - n_mut_next
+#            n_mut_next = sum(mut_types_next > 0)
+#            n_wt_next = len(individuals) - n_mut_next
             
             individuals2 = []
             for i in range(len(individuals)):
@@ -129,11 +154,11 @@ plt.figure(figsize = (24, 18))
 plt.xlabel(r'$f$', fontsize = 75)
 plt.ylabel(r'$P(f)$', fontsize = 75)
 
-plt.loglog(moving_average(f, 100, 100), moving_average(SFS, 100, 100), linewidth = 2)
+plt.loglog(moving_average(f, 20, 100), moving_average(SFS, 20, 100), linewidth = 2)
 plt.loglog(f, (1 + 2 * N * r) / f ** 2 / s, label = r'$P(f) = U_n(1 + 2Nr) / sf^2$')
 plt.loglog(f, 2 * N / f, label = r'$P(f) = 2 N U_n /f$')
 plt.legend(fontsize = 'medium', loc = 'upper right')
-#plt.savefig('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.2f}.png'.format(N, T_after_fix, s, r))
-#
-#np.savetxt('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.2f}.txt'.format(N, T_after_fix, s, r), SFS)
+plt.savefig('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.1e}_uptick.png'.format(N, T_after_fix, s, r))
+
+#np.savetxt('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.2e}_uptick.txt'.format(N, T_after_fix, s, r), SFS)
 

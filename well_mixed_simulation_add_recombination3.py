@@ -8,10 +8,10 @@ Created on Thu Jun 17 14:46:16 2021
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-N = 10 ** 5
+N = 2 * 10 ** 6
 s = 0.05
-N_sim = 5
-nsample = 10 ** 4
+N_sim = 40
+nsample = 10 ** 3
 T_after_fix = 0
 r = 10 ** (-5)
 
@@ -60,31 +60,47 @@ while n_sim < N_sim:
         while t < T_sweep - 1:
             t += 1
             Ne = n_selected_series[-t - 1]
-#            print(t)
-            n_recombine = np.random.poisson(N * r)
-            
-            # instead of assigning zero or one for WT/mutant, we have a list 
-            # number, which initially is range(N) and elements with < Ne is mutants
-            labels = list(range(N))
-            for i in range(n_recombine):
-                recombining_inds = np.random.randint(N, size = 2)
-                labels[recombining_inds[0]] = recombining_inds[1]
-                labels[recombining_inds[1]] = recombining_inds[0]
             Ne_old = n_selected_series[-t]
-            n_mut_inds_post_rec = 0
-            n_wt_inds_post_rec = 0
 
-            for i in range(n_mut_inds):
-                if labels[i] < Ne_old:
-                    n_mut_inds_post_rec += 1
-                else:
-                    n_wt_inds_post_rec += 1
-            for j in range(n_wt_inds):
-                if labels[-j - 1] < Ne_old:
-                    n_mut_inds_post_rec += 1
-                else:
-                    n_wt_inds_post_rec += 1
-#            random.shuffle(leaf_counts)
+#            print(t)
+#            n_recombine_wt = np.random.poisson(n_wt_inds * r)
+#            n_recombine_mut = np.random.poisson(n_mut_inds * r)
+            n_recombine_wt = sum(np.random.random(n_wt_inds) < r)
+            n_recombine_mut = sum(np.random.random(n_mut_inds) < r)
+            n_recombine = n_recombine_wt + n_recombine_mut
+            
+            n_new_mut = int(sum(np.random.choice(
+                    np.append(np.zeros(N - Ne_old)
+                    , np.ones(Ne_old))
+                    , size = n_recombine, replace = False)))
+            n_new_wt = n_recombine - n_new_mut
+            n_mut_inds_post_rec = n_mut_inds - n_recombine_mut + n_new_mut
+            n_wt_inds_post_rec = n_wt_inds - n_recombine_wt + n_new_wt
+            
+#            n_recombine = np.random.poisson(N * r)
+#            
+#            # instead of assigning zero or one for WT/mutant, we have a list 
+#            # number, which initially is range(N) and elements with < Ne is mutants
+#            labels = list(range(N))
+#            for i in range(n_recombine):
+#                recombining_inds = np.random.randint(N, size = 2)
+#                labels[recombining_inds[0]] = recombining_inds[1]
+#                labels[recombining_inds[1]] = recombining_inds[0]
+#            n_mut_inds_post_rec = 0
+#            n_wt_inds_post_rec = 0
+#
+#            for i in range(n_mut_inds):
+#                if labels[i] < Ne_old:
+#                    n_mut_inds_post_rec += 1
+#                else:
+#                    n_wt_inds_post_rec += 1
+#            for j in range(n_wt_inds):
+#                if labels[-j - 1] < Ne_old:
+#                    n_mut_inds_post_rec += 1
+#                else:
+#                    n_wt_inds_post_rec += 1
+
+
             inds_mut_new = np.array([np.ones(n_mut_inds_post_rec), 
                                      np.random.randint(Ne, 
                                             size = n_mut_inds_post_rec)]).T
@@ -93,7 +109,7 @@ while n_sim < N_sim:
                                     np.random.randint(N - Ne, 
                                         size = n_wt_inds_post_rec)]).T
             inds_new = np.append(inds_mut_new, inds_wt_new, axis = 0)
-            random.shuffle(leaf_counts)
+#            random.shuffle(leaf_counts)
             inds_new_repeat = np.repeat(inds_new, 
                                         leaf_counts, axis = 0)
             unique, leaf_counts = np.unique(inds_new_repeat, 
@@ -124,16 +140,36 @@ while n_sim < N_sim:
 #            SFS += hist
             
         while n_inds > 1:
-            inds_wt_new = np.array([np.zeros(n_inds), 
-                                    np.random.randint(N, 
-                                        size = n_inds)]).T
-            inds_wt_new_repeat = np.repeat(inds_wt_new, leaf_counts, axis = 0)
-            unique, leaf_counts = np.unique(inds_wt_new_repeat, 
-                                            return_counts = True, axis = 0)
+            individuals = np.random.randint(N, size = n_inds)
+            T2 = np.random.exponential(
+                N / ((n_inds - 1) * n_inds / 2))
+        
             hist, bin_edges = np.histogram(leaf_counts,
-                                           bins = np.arange(1, nsample + 2))
-            SFS += hist
-            n_inds = len(unique)
+                                       bins = np.arange(1, nsample + 2))
+            SFS += hist * T2
+        
+            coal_inds = np.random.choice(range(n_inds), 
+                                  size = 2, replace = False)
+
+            individuals[coal_inds[0]] = individuals[coal_inds[1]] 
+
+            individuals2 = np.repeat(individuals, leaf_counts, axis = 0)
+
+            unique, leaf_counts = np.unique(individuals2, 
+                                        axis = 0, return_counts = True)
+            individuals = unique
+            n_inds = len(individuals)
+
+#            inds_wt_new = np.array([np.zeros(n_inds), 
+#                                    np.random.randint(N, 
+#                                        size = n_inds)]).T
+#            inds_wt_new_repeat = np.repeat(inds_wt_new, leaf_counts, axis = 0)
+#            unique, leaf_counts = np.unique(inds_wt_new_repeat, 
+#                                            return_counts = True, axis = 0)
+#            hist, bin_edges = np.histogram(leaf_counts,
+#                                           bins = np.arange(1, nsample + 2))
+#            SFS += hist
+#            n_inds = len(unique)
             
             
 SFS /= N_sim
@@ -157,7 +193,7 @@ plt.loglog(moving_average(f, 20, 100), moving_average(SFS, 20, 100), linewidth =
 plt.loglog(f, (1 + 2 * N * r) / f ** 2 / s, label = r'$P(f) = U_n(1 + 2Nr) / sf^2$')
 plt.loglog(f, 2 * N / f, label = r'$P(f) = 2 N U_n /f$')
 plt.legend(fontsize = 'medium', loc = 'upper right')
-plt.savefig('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.1e}.png'.format(N, T_after_fix, s, r))
-
-np.savetxt('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.1e}.txt'.format(N, T_after_fix, s, r), SFS)
+#plt.savefig('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.1e}.png'.format(N, T_after_fix, s, r))
+#
+#np.savetxt('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.1e}.txt'.format(N, T_after_fix, s, r), SFS)
 
