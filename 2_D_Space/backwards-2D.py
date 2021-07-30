@@ -33,7 +33,6 @@ T_after_fix = int(sys.argv[8]) # number of generations between fixation and samp
 
 
 '''Read input file and flatten lines[i] into 1-D array here for use within existing framework'''
-#name = 'L=200_N=200_s=0.050_m=0.25_l0=100.txt'
 fname = 'L='+str(L)+'_N='+str(N)+'_s='+str(s)+'_m='+str(m)+'_l0='+str(l0)+'.txt'
 print(fname)
 lines = np.loadtxt(fname, dtype=np.int64)
