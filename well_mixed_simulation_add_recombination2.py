@@ -7,11 +7,11 @@ Created on Thu Jun 17 14:46:16 2021
 
 import numpy as np
 import matplotlib.pyplot as plt
-N = 10 ** 5
+N = 10 ** 4
 s = 0.05
-N_sim = 500
-nsample = 10 ** 3
-T_after_fix = 0
+N_sim = 2000
+nsample = 10 ** 4
+T_after_fix = 10
 r = 5 * 10 ** (-5)
 
 n_sim = 0
@@ -52,6 +52,8 @@ while n_sim < N_sim:
             n_mut_inds = len(unique)
             n_wt_inds = 0
         individuals = np.array([[1, i] for i in range(n_mut_inds)])
+        individuals = individuals.astype(np.int64)
+        leaf_counts = np.array(leaf_counts).astype(np.int64)
         while t < T_sweep - 1:
             t += 1
             mut_types, idxs = individuals.T
@@ -60,20 +62,32 @@ while n_sim < N_sim:
             
             mut_types_next = mut_types
             
-            n_recom = np.random.poisson(N * r)
-            idx_recom = np.random.randint(N, size = n_recom)
             
-            for idx in idx_recom:
-                idx_of_individuals = np.where(idx in idxs)[0]
-                if len(idx_of_individuals) == 1:
-                    p = np.random.random()
-                    if mut_types_next[idx_of_individuals] < 1 and p < Ne_current / N:
-                        mut_types_next[idx_of_individuals] = 1
-                    elif mut_types_next[idx_of_individuals] > 0 and p < (N - Ne_current) / N:
-                        mut_types_next[idx_of_individuals] = 0
+#            n_recom = np.random.poisson(N * r)
+#            idx_recom = np.random.randint(N, size = n_recom)
+#            
+#            for idx in idx_recom:
+#                idx_of_individuals = np.where(idx in idxs)[0]
+#                if len(idx_of_individuals) == 1:
+#                    p = np.random.random()
+#                    if mut_types_next[idx_of_individuals] < 1 and p < Ne_current / N:
+#                        mut_types_next[idx_of_individuals] = 1
+#                    elif mut_types_next[idx_of_individuals] > 0 and p < (N - Ne_current) / N:
+#                        mut_types_next[idx_of_individuals] = 0
                     
             
-#            p_vals = np.random.random(len(individuals))
+            p_vals = np.random.random(len(individuals))
+            
+            # cumulative probability : if p < r -> recombine with either WT or mut
+            # if p < r * Ne_current / N -> recombine with mutant
+            # if r * Ne_current / N < p < r -> recombine with WT
+            rec_with_mut_idxs = np.where(p_vals < r * Ne_current / N)[0]
+            mut_types_next[rec_with_mut_idxs] = 1
+            rec_with_WT_idxs = np.where(
+                    np.logical_and(p_vals > r * Ne_current / N, 
+                                                        p_vals < r))[0]
+            mut_types_next[rec_with_WT_idxs] = 0
+            mut_types_next = np.array(mut_types_next).astype(np.int64)
 #            for i in range(len(individuals)):
 #                if mut_types_next[i] < 1: # WT
 #                    if p_vals[i] < r * Ne_current / N:
@@ -113,7 +127,8 @@ while n_sim < N_sim:
                     individuals2.append([1, np.random.randint(Ne)])
                 else:
                     individuals2.append([0, np.random.randint(N - Ne)])
-            
+            individuals2 = np.array(individuals2).astype(np.int64)
+            np.random.shuffle(leaf_counts)
             individuals2_repeat = np.repeat(np.array(individuals2)
                                             , leaf_counts, axis = 0)
             unique, leaf_counts = np.unique(individuals2_repeat
@@ -127,15 +142,26 @@ while n_sim < N_sim:
             
         n_remains = len(individuals)
         while n_remains > 1:
-            inds_new = np.random.randint(N, size = n_remains)
-            inds_new_repeat = np.repeat(inds_new, leaf_counts, axis = 0)
-            unique, leaf_counts = np.unique(inds_new_repeat, 
-                                            return_counts = True)
+            individuals = np.random.randint(N, size = n_remains)
+            T2 = np.random.exponential(
+                N / ((n_remains - 1) * n_remains / 2))
+        
             hist, bin_edges = np.histogram(leaf_counts,
-                                           bins = np.arange(1, nsample + 2))
-            SFS += hist
-            n_remains = len(unique)
-            
+                                       bins = np.arange(1, nsample + 2))
+            SFS += hist * T2
+        
+            coal_inds = np.random.choice(range(n_remains), 
+                                  size = 2, replace = False)
+
+            individuals[coal_inds[0]] = individuals[coal_inds[1]] 
+
+            individuals2 = np.repeat(individuals, leaf_counts, axis = 0)
+
+            unique, leaf_counts = np.unique(individuals2, 
+                                        axis = 0, return_counts = True)
+            individuals = unique
+            n_remains = len(individuals)
+                    
             
 SFS /= N_sim
 SFS *= nsample
@@ -154,7 +180,7 @@ plt.figure(figsize = (24, 18))
 plt.xlabel(r'$f$', fontsize = 75)
 plt.ylabel(r'$P(f)$', fontsize = 75)
 
-plt.loglog(moving_average(f, 20, 100), moving_average(SFS, 20, 100), linewidth = 2)
+plt.loglog(moving_average(f, 100, 100), moving_average(SFS, 100, 100), linewidth = 2)
 plt.loglog(f, (1 + 2 * N * r) / f ** 2 / s, label = r'$P(f) = U_n(1 + 2Nr) / sf^2$')
 plt.loglog(f, 2 * N / f, label = r'$P(f) = 2 N U_n /f$')
 plt.legend(fontsize = 'medium', loc = 'upper right')
