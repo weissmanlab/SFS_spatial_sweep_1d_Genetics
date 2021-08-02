@@ -8,21 +8,23 @@ from multiprocessing import Pool
 import sys
 from numpy import random
 
-L = 50 # number of demes in 1 Direction. Total demes = L*L
-N = 100 # deme capacity
-s = 0.5 # selection coef
-m = 0.1 # migration rate
+'''
+L = 200 # number of demes in 1 Direction. Total demes = L*L
+N = 200 # deme capacity
+s = 0.05 # selection coef
+m = 0.25 # migration rate
 r = 0 # recombination rate
-tfinal = 528 # sweep time
-nbase = 501 # sample size
-N_SFS = 50 # number of coalescent simulation we run.
-T_after_fix = 30 # number of generations between fixation and sampling
+tfinal = 1721 # sweep time
+nbase = 100# sample size
+N_SFS = 4 # number of coalescent simulation we run.
+T_after_fix = 0 # number of generations between fixation and sampling
 n_forward = 1 # forward time simulation number
-
+l0 = 100
+'''
 def safe_divide(a, b, val=0):
     return np.divide(a, b, out=np.full_like(a, val), where=b != 0)
-
-def get_parent_presweep_arr_new(inds):
+    
+def get_parent_presweep_arr_new(inds, N, m, L):
     '''
     Function picks up a particular individiual, allows it to randomly migrate and tracks it to the parent till before the sweep happened
     
@@ -30,6 +32,10 @@ def get_parent_presweep_arr_new(inds):
     inds = [type of mutation (0 for wt), which deme number, individual within the deme] per row and # of rows is how many individuals left tp sample
     deme_arr = 1-D array of size L*L
     mut_type = 1 for neutral mutation, 0 for wt
+    N = number of indovoduals in a deme
+    m = migration rate
+    L = number of demes in one direction
+
 
     The addition and subtraction of indexes is to do migration in 2-D space in a 1-D array. 
     For index i:
@@ -48,7 +54,6 @@ def get_parent_presweep_arr_new(inds):
     ind_in_deme_arr_new = np.zeros_like(ind_in_deme_arr)
 
     len_inds = len(inds)
-
     which_deme_rand = random.random(len_inds)
     #array of random numbers used to determine which deme the parent is in. Its an array as big as the number of demes so we can track all individuals .
     choice_rand = random.random(len_inds)  
@@ -98,7 +103,7 @@ def get_parent_presweep_arr_new(inds):
     return inds2
     
         
-def get_individuals2_new(Ne, Ne_parent, individuals):
+def get_individuals2_new(Ne, Ne_parent, individuals, N, m, L):
     '''
     for each bucket, choose between neighboring/own buckets with relative
     probabilities [m/4 for each neighbor and 1-m for being in the same bucket.
@@ -108,6 +113,10 @@ def get_individuals2_new(Ne, Ne_parent, individuals):
     deme_arr = 1-D array of size L*L
     Mutation = 1, 0 for WT
     left, right, top, bottom are the neighbors. Mid is the same deme with no migration/probablity 
+    N = number of individuals in a deme 
+    m = migration rate
+    L = number of demes in one direction
+    
     
     Migration patterns from a given index i:
     Top = (i-L)%(L*L)
@@ -122,29 +131,32 @@ def get_individuals2_new(Ne, Ne_parent, individuals):
     Nwt = (N - Ne).astype(np.int64)   ##Since forward simulation only tracked mutants
     Nwt_parent = (N - Ne_parent).astype(np.int64)    
     mut_types, deme_arr, ind_in_deme_arr = individuals.T
+    #print(Ne_parent)
+    #print(Nwt_parent)
 
     #Create new arrays to track changes after the individual is tracked per generational step
     ind_in_deme_arr_next = np.zeros_like(ind_in_deme_arr)
     len_inds = len(deme_arr)
     which_parent_rand = random.random(len_inds) # to choose btw left/mid/right/top/bottom
     choice_rand = random.random(len_inds) # used for index within the deme
-
+    
     '''
     For mutant first, find the parent's deme and then its index inside the deme
     Perform for the entire deme list in one step.
     '''
-    mut_idxs, deme_arr_next, mut_types_next = track_individual(Ne_parent, choice_rand, which_parent_rand, 1, individuals)
+    mut_idxs, deme_arr_next, mut_types_next = track_individual(Ne_parent, choice_rand, which_parent_rand, 1, individuals, N, m, L)
     ind_in_deme_arr_next[mut_idxs] = (np.floor(choice_rand[mut_idxs] * np.take(Ne_parent, deme_arr_next[mut_idxs]))).astype(np.int64)
 
     '''
     Next for Wildtype find the parent's deme and then its index inside the deme
     Do for the entire array at the same time 
     '''
-    wt_idxs, deme_arr_next, mut_types_next = track_individual(Nwt_parent, choice_rand, which_parent_rand, 0, individuals)
-    ind_in_deme_arr_next[wt_idxs] = (np.floor(choice_rand[wt_idxs] * np.take(Nwt_parent, deme_arr_next[wt_idxs]))).astype(np.int64)
+    #wt_idxs, deme_arr_next, mut_types_next = track_individual(Nwt_parent, choice_rand, which_parent_rand, 0, individuals, N, m, L)
+    #ind_in_deme_arr_next[wt_idxs] = (np.floor(choice_rand[wt_idxs] * np.take(Nwt_parent, deme_arr_next[wt_idxs]))).astype(np.int64)
 
     ###Recreate the data structure we had for passing into function
     individuals2 = np.vstack((mut_types_next, deme_arr_next, ind_in_deme_arr_next)).T
+    
     del deme_arr_next
     del deme_arr    
     del mut_types_next
@@ -153,13 +165,16 @@ def get_individuals2_new(Ne, Ne_parent, individuals):
     return individuals2
     
     
-def track_individual(parent_array, choice_rand, which_parent_rand, mutation_val, individuals):
+def track_individual(parent_array, choice_rand, which_parent_rand, mutation_val, individuals, N, m, L):
     '''
     parent_array = the array of parent values (coud be wildtype or mutant)
     choice_rand, which_parent_rand = random probablities created for makinf choices
     mutation_val = value to compare nearest neighbors. Can only coalesce with the same type.
     1 if mutant, 0 if wildtype
     individuals: the structure of data that is created.
+    N = number of individuals in a deme
+    m = migration rate
+    L = number of demes in one direction
     '''
     mut_types, deme_arr, ind_in_deme_arr = individuals.T
     deme_arr = (deme_arr).astype(np.int64)
@@ -168,7 +183,6 @@ def track_individual(parent_array, choice_rand, which_parent_rand, mutation_val,
     ind_in_deme_arr_next = np.zeros_like(ind_in_deme_arr)
     len_inds = len(deme_arr)
     
-    
     '''Creating the probablities of moving to the nearest neigbor if it is of same type. The probablity is weighted by the number of mutants/wiltypes in the neighborinf deme'''
     left_parent_prob = m/4 *np.take(parent_array,[(deme_arr[i]+(L-1)) if (deme_arr[i])%L == 0 else (deme_arr[i]-1) for i in range(len(deme_arr))])
     right_parent_prob = m/4 *np.take(parent_array,[(deme_arr[i]-(L-1)) if (deme_arr[i]+1)%L == 0 else (deme_arr[i]+1) for i in range(len(deme_arr))])    
@@ -176,51 +190,61 @@ def track_individual(parent_array, choice_rand, which_parent_rand, mutation_val,
     bottom_parent_prob = m/4 * np.take(parent_array, ((deme_arr+L)%(L*L)))
     mid_parent_prob = (1 - m) * np.take(parent_array, deme_arr)
     total_prob = (left_parent_prob + right_parent_prob + top_parent_prob + bottom_parent_prob + mid_parent_prob)
-
-
+    #print(total_prob,'\n')
+    
     '''Set the cumulative probability and normalise'''
     left_parent_prob_cumulative = safe_divide(left_parent_prob, total_prob)
+    #print(left_parent_prob_cumulative,'\n')
     right_parent_prob_cumulative = safe_divide(left_parent_prob  + right_parent_prob, total_prob)
+    #print(right_parent_prob_cumulative,'\n')
     top_parent_prob_cumulative = safe_divide(left_parent_prob  + right_parent_prob+ top_parent_prob, total_prob)
+    #print(top_parent_prob_cumulative,'\n')
     bottom_parent_prob_cumulative = safe_divide(left_parent_prob  + right_parent_prob + top_parent_prob + bottom_parent_prob, total_prob)
-    mid_parent_prob_cumulative = 1 - bottom_parent_prob_cumulative
+    #print(bottom_parent_prob_cumulative,'\n')
+    #mid_parent_prob_cumulative = 1 - bottom_parent_prob_cumulative
 
-    
     '''The location of individuals where probablty to move left is found is in left_idx. For those indivduals, move the location. Repeat for others'''
     left_parent_idxs = np.where(np.logical_and(
         which_parent_rand < left_parent_prob_cumulative,
         mut_types_next == mutation_val))[0]
     deme_arr_next[left_parent_idxs] = ([(deme_arr[i] + L-1) if deme_arr[i]%L == 0 else (deme_arr[i]-1) for i in left_parent_idxs])
+    #print(left_parent_idxs)
 
     right_parent_idxs = np.where(np.logical_and.reduce((
         which_parent_rand > left_parent_prob_cumulative,
         which_parent_rand < right_parent_prob_cumulative,
         mut_types_next == mutation_val)))[0]
     deme_arr_next[right_parent_idxs] = ([(deme_arr[i] - (L-1)) if (deme_arr[i]+1)%L == 0 else (deme_arr[i]+1) for i in right_parent_idxs])
-
+    #print(right_parent_idxs)    
+    
     top_parent_idxs = np.where(np.logical_and.reduce((
         which_parent_rand > right_parent_prob_cumulative,
         which_parent_rand < top_parent_prob_cumulative,
         mut_types_next == mutation_val)))[0]
     deme_arr_next[top_parent_idxs] = (((deme_arr[top_parent_idxs]+L)%(L*L))).astype(np.int64)
-
+    #print(top_parent_idxs)        
+        
     bottom_parent_idxs = np.where(np.logical_and.reduce((
         which_parent_rand > top_parent_prob_cumulative,
         which_parent_rand < bottom_parent_prob_cumulative,
         mut_types_next == mutation_val)))[0]
     deme_arr_next[bottom_parent_idxs] = (((deme_arr[bottom_parent_idxs]+L)%(L*L))).astype(np.int64)
-
+    #print(bottom_parent_idxs)    
+    
     mid_parent_idxs = np.where(np.logical_and(
         which_parent_rand > bottom_parent_prob_cumulative,
         mut_types_next == mutation_val))[0]
     deme_arr_next[mid_parent_idxs] = (deme_arr[mid_parent_idxs]).astype(np.int64)
-
-    del deme_arr 
+    #print(mid_parent_idxs)    
+    
     given_idxs = np.concatenate((left_parent_idxs, right_parent_idxs, top_parent_idxs, bottom_parent_idxs, mid_parent_idxs))
+    #print(len(given_idxs))    
+    
+    
     return given_idxs, deme_arr_next, mut_types_next
 
 
-def sample_data(Ne, n):
+def sample_data(Ne, n, N):
     '''
     Pick random deme locations for as many individuals as we want to sample and what the index within a deme is 
     Currently, uniform probablity distributions
@@ -239,7 +263,7 @@ def sample_data(Ne, n):
     ###Adding mutants to the data structure
     for k in range(n):  
         # 1 is for having beneficial mutation
-        individuals.append([1, deme_ind[k], ind_inside_deme[k]])
+        individuals.append([1., deme_ind[k], ind_inside_deme[k]])
         
     individuals = np.array(individuals)
     return individuals

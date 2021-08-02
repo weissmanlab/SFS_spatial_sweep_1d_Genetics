@@ -21,26 +21,26 @@ from numpy import random
 from functions_2D_back import *
 import matplotlib.pyplot as plt
 
-'''
+
 L = int(sys.argv[1]) # number of demes
 N = int(sys.argv[2]) # deme capacity
-s = float(sys.argv[3]) # selection coef
+s = format(float(sys.argv[3]),'0.3f') # selection coef
 m = float(sys.argv[4]) # migration rate
-r = float(sys.argv[5]) # recombination rate
-tfinal = int(sys.argv[6]) # sweep time
-nbase = int(sys.argv[7]) # sample size
-N_SFS = int(sys.argv[8]) # number of coalescent simulation we run.
-T_after_fix = int(sys.argv[9]) # number of generations between fixation and sampling
-n_forward = int(sys.argv[10]) # forward time simulation number
-'''
+l0 = int(sys.argv[5])##l0 for the file name string
+nbase = int(sys.argv[6]) # sample size
+N_SFS = int(sys.argv[7]) # number of coalescent simulation we run for ensemble average.
+T_after_fix = int(sys.argv[8]) # number of generations between fixation and sampling
 
 
 '''Read input file and flatten lines[i] into 1-D array here for use within existing framework'''
-fname = 'Data_Reshape_528.txt'
+fname = 'L='+str(L)+'_N='+str(N)+'_s='+str(s)+'_m='+str(m)+'_l0='+str(l0)+'.txt'
+print(fname)
 lines = np.loadtxt(fname, dtype=np.int64)
+print(len(lines))
+tfinal = int(len(lines)/L)
 lines = lines.reshape(tfinal, L,L)  ###lines = Data from forward simulation
 lines = [lines[i].flatten() for i in range(len(lines))]
-
+print(tfinal)
 
 def runner(idx):
     '''
@@ -56,7 +56,8 @@ def runner(idx):
 
     '''Creating the primary data structure by sampling'''
     #individuals format will be [mut_type, deme index, individual index (inside the deme)] in a row and as many rows as individuals we sample
-    individuals = sample_data(Ne, n)
+    individuals = sample_data(Ne, n, N)
+    #print(individuals)
     unique, leaf_counts = np.unique(individuals, axis = 0, return_counts = True) #To avoid overcounting of repeated locations and ensure we actually sample what we want
     ###The AFS is the histogram of these leaf counts counted over all generations
     hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
@@ -64,13 +65,13 @@ def runner(idx):
 
     '''Starting simulations backward in time now'''    
  
-   t_after_fix = 0
+    t_after_fix = 0
     '''Going backwards in time for user given generations after sweep has fixed'''
     #Since the population in 2-D doesnt change once sweep has fixed, we dont need to change the input data for this
     
     while t_after_fix < T_after_fix:
         t_after_fix += 1
-        individuals2 = get_individuals2_new(Ne, Ne, individuals)
+        individuals2 = get_individuals2_new(Ne, Ne, individuals, N, m, L)
         individuals2 = np.repeat(individuals2, leaf_counts, axis = 0)  ###Repeat the values to keep the size of the array constant as we lose individuals coalescing back in time. 
         unique, leaf_counts = np.unique(individuals2, axis = 0, return_counts = True)  ##Get rid of replicates from the previous step as well as reduce sample size if individuals have coalesced
         hist, bin_edges = np.histogram(leaf_counts,bins = np.arange(1, n + 2))
@@ -79,10 +80,13 @@ def runner(idx):
 
     '''Going back in time WHILE the wave is fixing, all the way back to the time when mutation is first established'''
     line_num = -1
+    
     while (len(individuals) > 1) and (line_num > -len(lines)):  ##The maximum we can go backward in time is till T2
+        print(line_num)
+
         line_num -= 1
         Ne_parent = (lines[line_num]).astype(np.int64) ##Getting the parent generation from each time step of our forward simulation
-        individuals2 = get_individuals2_new(Ne, Ne_parent, individuals)
+        individuals2 = get_individuals2_new(Ne, Ne_parent, individuals, N, m, L)
         individuals2 = np.repeat(individuals2, leaf_counts, axis = 0)
         unique, leaf_counts = np.unique(individuals2, axis = 0, return_counts = True)
         hist, bin_edges = np.histogram(leaf_counts,bins = np.arange(1, n + 2))
@@ -100,6 +104,7 @@ def runner(idx):
     of generations between the coalescence events.
     '''
 
+    print('extra gens')
     left_individuals = len(individuals)  ##Individuas left to still coalesce in time before the mutation arose
     branch_len = 0 # number of generations until first merging event
     extra_gen = 0 # extra run time before stopping the coalescent simulation.
@@ -108,7 +113,7 @@ def runner(idx):
         branch_len += 1
         extra_gen += 1
 
-        individuals2 = get_parent_presweep_arr_new(individuals)
+        individuals2 = get_parent_presweep_arr_new(individuals, N, m, L)
         individuals2 = np.repeat(individuals2, leaf_counts, axis = 0)
 
         unique, leaf_counts = np.unique(individuals2,
@@ -157,20 +162,24 @@ def runner(idx):
 if __name__ == '__main__':
 
     # this is the true sample number in case Ne < nbase.
-    p = Pool(2)    ##Nunmber of cores you want to spawn jobs on
+    p = Pool(4)    ##Nunmber of cores you want to spawn jobs on
     ret = p.map(runner, range(N_SFS))  ###Number of simulations you want to average over
     SFS_items = [r[0] for r in ret]
     H_items = [r[1] for r in ret]
     SFS = np.sum(SFS_items, axis=0)
     SFS /= N_SFS
-    np.savetxt('expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L,
-                N, s, m, r, tfinal, nbase, T_after_fix, N_SFS, n_forward), SFS)
+    np.savetxt('expected_SFS_L={}_N={}_s={:.3f}_m={:.2f}_nsample={}_tfix={}_sample_uniform_navg={}.txt'.format(int(L),
+                int(N), float(s), float(m), int(nbase), int(T_after_fix), int(N_SFS)), SFS)
 
 
+    test = np.arange(1,nbase)
     '''Plotting SFS to see in log scale'''
     plt.ylabel('frequency')
     plt.plot(SFS)
     plt.yscale('log')
     plt.xscale('log')
-    plt.show()
+    plt.plot(1/test + SFS[0])
+    plt.plot(1/(test**2) + SFS[0])
+    plt.savefig('Test.jpeg')
+    #plt.show()
     
