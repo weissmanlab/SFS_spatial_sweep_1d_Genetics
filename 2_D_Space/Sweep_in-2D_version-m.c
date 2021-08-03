@@ -14,7 +14,7 @@
 
 
 // For misha's laptop, create make file
-// run by typing : gcc plain_sweep_change_sweep_origin_2-D.c -o plain_sweep -lgsl -lgslcblas -lm
+// run by typing : gcc Sweep_in-2D_version-m.c -o plain_sweep -lgsl -lgslcblas -lm
 // ./plain_sweep L N s m tfinal l0
 
 
@@ -122,10 +122,9 @@ int main(int argc, char  *argv[]) {
 
 
     for (m = 0; m < 1; m++) {
-        sprintf(outfile, "L=%u_N=%u_s=%f_m=%f_tfinal=%u_l0=%u_%d", L, N, s, mig, tfinal, l0, m);
+        sprintf(outfile, "L=%u_N=%u_s=%0.3f_m=%0.2f_l0=%u", L, N, s, mig, l0);
         outfile = strcat(outfile, ".txt");
-
-
+        
         // gsl random setup:
         gsl_rng_env_setup();
         T = gsl_rng_default;
@@ -188,15 +187,15 @@ int main(int argc, char  *argv[]) {
 
                 // Evolve for one generation
                 next_gen(L, n, s, mig, N);
+                    printf("Current Time = %d \n",t);
+
 
             }
-
             fclose(datafile);
         }
     }
 
-
-
+    printf("Tfinal = %d",t);
 
     //Sanity Check
     if (t == tfinal){
@@ -207,7 +206,6 @@ int main(int argc, char  *argv[]) {
     return 0;
 
 }
-
 
 
 
