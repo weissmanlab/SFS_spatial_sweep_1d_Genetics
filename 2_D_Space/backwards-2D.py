@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+00#!/usr/bin/env python3
 '''
 Coalescent simulation with recombination.
 open the frequency file read backward in time until n individuals all coalesce.
@@ -178,8 +178,6 @@ if __name__ == '__main__':
     plt.plot(SFS)
     plt.yscale('log')
     plt.xscale('log')
-    plt.plot(1/test + SFS[0])
-    plt.plot(1/(test**2) + SFS[0])
     plt.savefig('Test.jpeg')
     #plt.show()
     
