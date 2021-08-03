@@ -14,7 +14,7 @@
 
 
 // For misha's laptop, create make file
-// run by typing : gcc Sweep_in-2D_version-m.c -o plain_sweep -lgsl -lgslcblas -lm
+// run by typing : gcc -std=c99 Sweep_in-2D_version-m.c -o plain_sweep -lgsl -lgslcblas -lm
 // ./plain_sweep L N s m tfinal l0
 
 
