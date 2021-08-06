@@ -1,4 +1,4 @@
-00#!/usr/bin/env python3
+#!/usr/bin/env python3
 '''
 Coalescent simulation with recombination.
 open the frequency file read backward in time until n individuals all coalesce.
@@ -20,20 +20,25 @@ import sys
 from numpy import random
 from functions_2D_back import *
 import matplotlib.pyplot as plt
+import time
+import psutil
 
+start = time.time()
 
 L = int(sys.argv[1]) # number of demes
 N = int(sys.argv[2]) # deme capacity
 s = format(float(sys.argv[3]),'0.3f') # selection coef
 m = float(sys.argv[4]) # migration rate
+m_file = format(m,'0.2f')
 l0 = int(sys.argv[5])##l0 for the file name string
 nbase = int(sys.argv[6]) # sample size
 N_SFS = int(sys.argv[7]) # number of coalescent simulation we run for ensemble average.
 T_after_fix = int(sys.argv[8]) # number of generations between fixation and sampling
+Nforw = int(sys.argv[9]) ##Forwrad simulation Number
 
 
 '''Read input file and flatten lines[i] into 1-D array here for use within existing framework'''
-fname = 'L='+str(L)+'_N='+str(N)+'_s='+str(s)+'_m='+str(m)+'_l0='+str(l0)+'.txt'
+fname = 'L='+str(L)+'_N='+str(N)+'_s='+str(s)+'_m='+str(m_file)+'_l0='+str(l0)+'_Nforw='+str(Nforw)+'.txt'
 print(fname)
 lines = np.loadtxt(fname, dtype=np.int64)
 print(len(lines))
@@ -168,8 +173,8 @@ if __name__ == '__main__':
     H_items = [r[1] for r in ret]
     SFS = np.sum(SFS_items, axis=0)
     SFS /= N_SFS
-    np.savetxt('expected_SFS_L={}_N={}_s={:.3f}_m={:.2f}_nsample={}_tfix={}_sample_uniform_navg={}.txt'.format(int(L),
-                int(N), float(s), float(m), int(nbase), int(T_after_fix), int(N_SFS)), SFS)
+    np.savetxt('expected_SFS_L={}_N={}_s={:.3f}_m={:.2f}_nsample={}_tfix={}_sample_uniform_navg={}_Nforw={}.txt'.format(int(L),
+                int(N), float(s), float(m), int(nbase), int(T_after_fix), int(N_SFS), int(Nforw)), SFS)
 
 
     test = np.arange(1,nbase)
@@ -179,5 +184,8 @@ if __name__ == '__main__':
     plt.yscale('log')
     plt.xscale('log')
     plt.savefig('Test.jpeg')
+    end = time.time()
+    print(start-end) 
+    print (psutil.virtual_memory())
     #plt.show()
     
