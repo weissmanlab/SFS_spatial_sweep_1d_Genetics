@@ -6,185 +6,146 @@ Created on Thu Jun 17 14:46:16 2021
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
-N = 10 ** 4
-s = 0.05
-N_sim = 2000
-nsample = 10 ** 4
-T_after_fix = 10
-r = 5 * 10 ** (-5)
+from multiprocessing import Pool
+import sys
 
-n_sim = 0
-SFS = np.zeros(nsample)
+N = int(sys.argv[1]) # population size
+s = float(sys.argv[2]) # selection coefficient
+N_sim = int(sys.argv[3]) # number of simulation (forward + backward)
+nsample = int(sys.argv[4]) # number of individuals sampled for the backward part
+T_after_fix = int(sys.argv[5]) # time between fixation and sampling
+r = float(sys.argv[6]) # recombination rate
 
-while n_sim < N_sim:
+#N = 10 ** 4
+#s = 0.05
+#N_sim = 10000
+#nsample = 10 ** 3
+#T_after_fix = 0
+#r = 5 * 10 ** (-5)
+
+
+def forward_sim():
     n_selected = 1
     n_selected_series = [n_selected]
     while n_selected < N and n_selected > 0:
         n_selected = np.random.binomial(N, n_selected / N 
-                                    + s * n_selected / N 
-                                    * (1 - n_selected / N))
+                                        + s * n_selected / N
+                                         * (1 - n_selected / N))
         n_selected_series.append(n_selected)
-#    print(n_selected)
-    if n_selected > 0:
-        n_sim += 1
-        print(n_sim)
-        
-        # coalescent simulation on a successful sweep data
-        T_sweep = len(n_selected_series)
-        t_after_fix = 0
-        t = 0
-        leaf_counts = [1 for _ in range(nsample)]
-        leaf_counts_mut = leaf_counts
-        leaf_counts_wt = []
-        n_mut_inds = nsample
-        n_wt_inds = 0
-        while t_after_fix < T_after_fix:
-            t_after_fix += 1
-            inds_mut_new = np.random.randint(N, size = n_mut_inds)
-            inds_mut_new_repeat = np.repeat(inds_mut_new, leaf_counts_mut, axis = 0)
-            unique, leaf_counts_mut = np.unique(inds_mut_new_repeat, 
-                                            return_counts = True)
-            leaf_counts = np.append(leaf_counts_mut, leaf_counts_wt)
-            hist, bin_edges = np.histogram(leaf_counts,
-                                           bins = np.arange(1, nsample + 2))
-            SFS += hist
-            n_mut_inds = len(unique)
-            n_wt_inds = 0
-        individuals = np.array([[1, i] for i in range(n_mut_inds)])
-        individuals = individuals.astype(np.int64)
-        leaf_counts = np.array(leaf_counts).astype(np.int64)
-        while t < T_sweep - 1:
-            t += 1
-            mut_types, idxs = individuals.T
-            Ne = n_selected_series[-t - 1]
-            Ne_current = n_selected_series[-t]
-            
-            mut_types_next = mut_types
-            
-            
-#            n_recom = np.random.poisson(N * r)
-#            idx_recom = np.random.randint(N, size = n_recom)
-#            
-#            for idx in idx_recom:
-#                idx_of_individuals = np.where(idx in idxs)[0]
-#                if len(idx_of_individuals) == 1:
-#                    p = np.random.random()
-#                    if mut_types_next[idx_of_individuals] < 1 and p < Ne_current / N:
-#                        mut_types_next[idx_of_individuals] = 1
-#                    elif mut_types_next[idx_of_individuals] > 0 and p < (N - Ne_current) / N:
-#                        mut_types_next[idx_of_individuals] = 0
-                    
-            
-            p_vals = np.random.random(len(individuals))
-            
-            # cumulative probability : if p < r -> recombine with either WT or mut
-            # if p < r * Ne_current / N -> recombine with mutant
-            # if r * Ne_current / N < p < r -> recombine with WT
-            rec_with_mut_idxs = np.where(p_vals < r * Ne_current / N)[0]
-            mut_types_next[rec_with_mut_idxs] = 1
-            rec_with_WT_idxs = np.where(
-                    np.logical_and(p_vals > r * Ne_current / N, 
-                                                        p_vals < r))[0]
-            mut_types_next[rec_with_WT_idxs] = 0
-            mut_types_next = np.array(mut_types_next).astype(np.int64)
-#            for i in range(len(individuals)):
-#                if mut_types_next[i] < 1: # WT
-#                    if p_vals[i] < r * Ne_current / N:
-#                        mut_types_next[i] = 1
-#                else:
-#                    if p_vals[i] < r * (N - Ne_current) / N:
-#                        mut_types_next[i] = 0
-            
-#            mut_types_next = mut_types
-#            n_recom = np.random.poisson(len(individuals) * r)
-#            idx_recom = np.random.randint(len(individuals), size = n_recom)
-#            for i in range(n_recom):
-#                p = np.random.random()
-#                if p < Ne_current / N:
-#                    mut_types_next[idx_recom[i]] = 1
-#                else:
-#                    mut_types_next[idx_recom[i]] = 0
+    return n_selected_series
 
-            
-#            mut_types_next = np.ones_like(mut_types)
-##            print(t)
-#            p_vals = np.random.random(len(individuals))
-#            
-#            zero_idxs = np.where(np.logical_and(mut_types == 1, 
-#                                                p_vals < r * (N - Ne_current) / (N - 1)))
-#            zero_idxs2 = np.where(np.logical_and(mut_types == 0, 
-#                                                 p_vals > r * Ne_current / (N - 1)))
-#            mut_types_next[zero_idxs] = 0
-#            mut_types_next[zero_idxs2] = 0
-            
-#            n_mut_next = sum(mut_types_next > 0)
-#            n_wt_next = len(individuals) - n_mut_next
-            
-            individuals2 = []
-            for i in range(len(individuals)):
-                if mut_types_next[i] > 0:
-                    individuals2.append([1, np.random.randint(Ne)])
-                else:
-                    individuals2.append([0, np.random.randint(N - Ne)])
-            individuals2 = np.array(individuals2).astype(np.int64)
-            np.random.shuffle(leaf_counts)
-            individuals2_repeat = np.repeat(np.array(individuals2)
-                                            , leaf_counts, axis = 0)
-            unique, leaf_counts = np.unique(individuals2_repeat
-                                            , return_counts = True, axis = 0)
-            
-            individuals = unique
-            
-            hist, bin_edges = np.histogram(leaf_counts, 
-                                           bins = np.arange(1, nsample + 2))
-            SFS += hist
-            
-        n_remains = len(individuals)
-        while n_remains > 1:
-            individuals = np.random.randint(N, size = n_remains)
-            T2 = np.random.exponential(
-                N / ((n_remains - 1) * n_remains / 2))
-        
-            hist, bin_edges = np.histogram(leaf_counts,
+def backward_sim(idx):
+    SFS = np.zeros(nsample)
+    n_selected_final = 0
+    while n_selected_final < N:
+        n_selected_series = forward_sim()
+        n_selected_final = n_selected_series[-1]
+    
+    T_sweep = len(n_selected_series)
+    t_after_fix = 0
+    leaf_counts = [1 for _ in range(nsample)]
+    leaf_counts = np.array(leaf_counts).astype(np.int64)
+    hist, bin_edges = np.histogram(leaf_counts, 
                                        bins = np.arange(1, nsample + 2))
-            SFS += hist * T2
-        
-            coal_inds = np.random.choice(range(n_remains), 
-                                  size = 2, replace = False)
+    SFS += hist
+    n_mut_tracked = nsample
+    while t_after_fix < T_after_fix:
+        t_after_fix += 1
+        idx_mut_new = np.random.randint(N, size = n_mut_tracked)
+        idx_mut_new_repeat = np.repeat(idx_mut_new, leaf_counts, axis = 0)
+        unique, leaf_counts = np.unique(idx_mut_new_repeat, 
+                                        return_counts = True)
+        hist, bin_edges = np.histogram(leaf_counts, 
+                                       bins = np.arange(1, nsample + 2))
+        SFS += hist
+        n_mut_tracked = len(unique)
 
-            individuals[coal_inds[0]] = individuals[coal_inds[1]] 
 
-            individuals2 = np.repeat(individuals, leaf_counts, axis = 0)
+    individuals = np.array([[1, i] for i in range(n_mut_tracked)])
+    individuals = individuals.astype(np.int64)
+    n_tracked = len(individuals)
+    leaf_counts = np.array(leaf_counts).astype(np.int64)
 
-            unique, leaf_counts = np.unique(individuals2, 
-                                        axis = 0, return_counts = True)
-            individuals = unique
-            n_remains = len(individuals)
-                    
-            
-SFS /= N_sim
-SFS *= nsample
+    t_backward_during_sweep = 1
+    
+    while t_backward_during_sweep < T_sweep:
+        t_backward_during_sweep += 1
+        mut_types, idxs = individuals.T
+        #starts at the second to the last number of the series
+        Ne_parent = n_selected_series[-t_backward_during_sweep] 
+        Ne = n_selected_series[-t_backward_during_sweep + 1]
+        mut_types_parents = mut_types
+        p_vals = np.random.random(n_tracked)
+        rec_with_mut_idxs = np.where(p_vals < r * Ne / N)[0]
+        mut_types_parents[rec_with_mut_idxs] = 1
+        rec_with_wt_idxs = np.where(np.logical_and(
+                p_vals > r * Ne / N, 
+                p_vals < r))[0]
+        mut_types_parents[rec_with_wt_idxs] = 0
+        mut_types_parents = np.array(mut_types_parents).astype(np.int64)
+        individuals_parents = []
+        for i in range(n_tracked):
+            if mut_types_parents[i] == 0:
+                individuals_parents.append([0, np.random.randint(N - Ne_parent)])
+            else:
+                individuals_parents.append([1, np.random.randint(Ne_parent)])
+        individuals_parents = np.array(individuals_parents).astype(np.int64)
+        individuals_parents_repeat = np.repeat(individuals_parents, 
+                                               leaf_counts, axis = 0)
+        unique, leaf_counts = np.unique(individuals_parents_repeat, 
+                                        return_counts = True, axis = 0)
+        individuals = unique
+        n_tracked = len(individuals)
+        hist, bin_edges = np.histogram(leaf_counts, 
+                                           bins = np.arange(1, nsample + 2))
+        SFS += hist
 
-def moving_average(a, n = 3, start_smooth = 100):
-    a_start = a[:start_smooth]
-    a_end = a[start_smooth:]
-    ret = np.cumsum(a_end, dtype=float)
-    ret[n:] = ret[n:] - ret[:-n]
-    return np.concatenate((a_start, ret[n - 1:] / n))
+    while n_tracked > 1:
+        individuals = np.random.randint(N, size = n_tracked)
+        T2 = np.random.exponential(
+                N / ((n_tracked - 1) * n_tracked / 2))
 
-f = np.arange(1, nsample + 1) / nsample
-plt.rc('text', usetex=True)
-plt.rc('font', family='serif', size = 60, weight = 'bold')
-plt.figure(figsize = (24, 18))
-plt.xlabel(r'$f$', fontsize = 75)
-plt.ylabel(r'$P(f)$', fontsize = 75)
+        hist, bin_edges = np.histogram(leaf_counts,
+                                   bins = np.arange(1, nsample + 2))
+        SFS += hist * T2
+    
+        coal_idxs = np.random.choice(range(n_tracked), 
+                              size = 2, replace = False)
 
-plt.loglog(moving_average(f, 100, 100), moving_average(SFS, 100, 100), linewidth = 2)
-plt.loglog(f, (1 + 2 * N * r) / f ** 2 / s, label = r'$P(f) = U_n(1 + 2Nr) / sf^2$')
-plt.loglog(f, 2 * N / f, label = r'$P(f) = 2 N U_n /f$')
-plt.legend(fontsize = 'medium', loc = 'upper right')
-plt.savefig('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.1e}_uptick.png'.format(N, T_after_fix, s, r))
+        individuals[coal_idxs[0]] = individuals[coal_idxs[1]] 
 
-#np.savetxt('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.2e}_uptick.txt'.format(N, T_after_fix, s, r), SFS)
+        individuals_parents = np.repeat(individuals, leaf_counts, axis = 0)
+
+        unique, leaf_counts = np.unique(individuals_parents, 
+                                    axis = 0, return_counts = True)
+        individuals = unique
+        n_tracked = len(individuals)
+    SFS *= nsample
+    if np.mod(idx, 1000) == 0:
+        np.savetxt('progress_for_N={}_Tfix={}_s={:.2f}_r={:.2e}_{}.txt'.format(
+                N, T_after_fix, s, r, idx), SFS[:5])    
+    return SFS
+
+if __name__ == '__main__':
+
+        # this is the true sample number in case Ne < nbase.
+    # print(individuals)
+    p = Pool(25)
+    
+    SFS = np.sum(p.map(backward_sim, range(N_sim)), axis = 0) / N_sim
+    np.savetxt('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.2e}.txt'.format(N, T_after_fix, s, r), SFS)
+
+#f = np.arange(1, nsample + 1) / nsample
+#plt.rc('text', usetex=True)
+#plt.rc('font', family='serif', size = 60, weight = 'bold')
+#plt.figure(figsize = (24, 18))
+#plt.xlabel(r'$f$', fontsize = 75)
+#plt.ylabel(r'$P(f)$', fontsize = 75)
+#
+#plt.loglog(moving_average(f, 40, 30), moving_average(SFS, 40, 30), linewidth = 2)
+#plt.loglog(f, (1 + 2 * N * r) / f ** 2 / s, label = r'$P(f) = U_n(1 + 2Nr) / sf^2$')
+#plt.loglog(f, 2 * N / f, label = r'$P(f) = 2 N U_n /f$')
+#plt.legend(fontsize = 'medium', loc = 'upper right')
+#plt.savefig('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.1e}_uptick.png'.format(N, T_after_fix, s, r))
+
 

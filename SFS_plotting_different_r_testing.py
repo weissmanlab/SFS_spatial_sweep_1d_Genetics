@@ -44,8 +44,8 @@ tfix = 0
 # Change r - sample everywhere
 n = 100000
 
+rlist = [10 ** (-3), 10 ** (-4), 10 ** (-5), 10 ** (-6), 10 ** (-7), 10 ** (-8)]
 
-rlist = [10 ** (-4), 10 ** (-5), 10 ** (-6)]
 nSFS = 2000
 f = np.arange(1, n + 1) / n
 
@@ -78,29 +78,31 @@ plt.loglog(f,
            color = '#cc79a7')
 
 
-f_short2 = np.linspace(3 / (rho * v0), 1, 100)
+f_short2 = np.linspace(3 / (rho * v0), 1, 150)
 plt.vlines(1 / (rho * v0), 10 ** 3, 10 ** 11, linestyle = 'dotted',
            linewidth = 6, color = '#009e73', label = r'$f = 1 / \rho v$')
-plt.text(10 ** (-3) / 2, 8 * 10 ** 11, r'$P(f) = U_{eff} / s f^2, U_{eff} = U (1 + 2 N r) $')
+plt.text(10 ** (-3) / 2, 8 * 10 ** 11, r'$P(f) = 2.5 U_{eff} / s f^2, U_{eff} = U (1 + 2 N r) $')
 
 for rind in range(len(rlist)):
     r = rlist[rind]
     Uneff = Un * (1 + 2 * N * r) 
     start_smooth = 100
-    navg = 30
+    
 
     SFS = np.zeros(n)
-    f_short = moving_average(f, navg, start_smooth)
-    if r > 2 * 10 ** (-6):
+    if r > 2 * 10 ** (-4):
+        navg = 100
+        f_short = moving_average(f, navg, start_smooth)
+
         for i in np.arange(0, n_forward):
                 SFS += n * np.loadtxt(
         'backward simulation data/expected_SFS_L=' 
         + '{}_rho={}_s={:.2e}_m={:.2e}_r={:.2e}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-                 rho, s, m, r, tfinal, n, tfix, nSFS, i))
+                 rho, s, m, r, tfinal, n, tfix, 1000, i))
         
         SFS /= (n_forward)
-        plt.loglog(f_short, 
-                 moving_average(SFS, navg, start_smooth), 
+        plt.loglog(f_short[:-1], 
+                 moving_average(SFS[:-1], navg, start_smooth), 
                  label = '$r =$ {:.1e}'.format(r), linewidth = 2, color = 
                  cividis_cmap(rind / len(rlist)), alpha = 0.8)
         print('{:.1e}'.format(r))
@@ -113,6 +115,57 @@ for rind in range(len(rlist)):
                    linewidth = 6, linestyle = '--'
                    , color = cividis_cmap(rind / len(rlist)), alpha = 0.8)
 
+    
+    elif r > 2 * 10 ** (-6):
+        navg = 150
+        f_short = moving_average(f, navg, start_smooth)
+
+        for i in np.arange(0, n_forward):
+                SFS += n * np.loadtxt(
+        'backward simulation data/expected_SFS_L=' 
+        + '{}_rho={}_s={:.2e}_m={:.2e}_r={:.2e}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
+                 rho, s, m, r, tfinal, n, tfix, nSFS, i))
+        
+        SFS /= (n_forward)
+        plt.loglog(f_short[:-1], 
+                 moving_average(SFS[:-1], navg, start_smooth), 
+                 label = '$r =$ {:.1e}'.format(r), linewidth = 2, color = 
+                 cividis_cmap(rind / len(rlist)), alpha = 0.8)
+        print('{:.1e}'.format(r))
+        print(SFS[-2:])
+        plt.loglog(f_short2, 
+           2.5 * Uneff / s / f_short2 ** 2, 
+           linestyle = '-.', color = cividis_cmap(rind / len(rlist)), 
+           linewidth = 6, alpha = 0.8)
+        plt.loglog(f_short, Uneff * np.ones(len(f_short)) * L / v0,
+                   linewidth = 6, linestyle = '--'
+                   , color = cividis_cmap(rind / len(rlist)), alpha = 0.8)
+    elif r > 2 * 10 ** (-9):
+        navg = 200
+        f_short = moving_average(f, navg, start_smooth)
+
+        for i in np.arange(0, n_forward):
+                SFS += n * np.loadtxt(
+        'backward simulation data/expected_SFS_L=' 
+        + '{}_rho={}_s={:.2e}_m={:.2e}_r={:.2e}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
+                 rho, s, m, r, tfinal, n, tfix, 5000, i))
+        
+        SFS /= (n_forward)
+        plt.loglog(f_short[:-1], 
+                 moving_average(SFS[:-1], navg, start_smooth), 
+                 label = '$r =$ {:.1e}'.format(r), linewidth = 2, color = 
+                 cividis_cmap(rind / len(rlist)), alpha = 0.8)
+        print('{:.1e}'.format(r))
+        print(SFS[-2:])
+        plt.loglog(f_short2, 
+           2.5 * Uneff / s / f_short2 ** 2, 
+           linestyle = '-.', color = cividis_cmap(rind / len(rlist)), 
+           linewidth = 6, alpha = 0.8)
+        plt.loglog(f_short, Uneff * np.ones(len(f_short)) * L / v0,
+                   linewidth = 6, linestyle = '--'
+                   , color = cividis_cmap(rind / len(rlist)), alpha = 0.8)
+
+
     else:
         navg = 60
         f_short = moving_average(f, navg, start_smooth)
@@ -124,8 +177,8 @@ for rind in range(len(rlist)):
                  rho, s, m, r, tfinal, n, tfix, nSFS, i))
         
         SFS /= n_forward
-        plt.loglog(f_short, 
-                 moving_average(SFS, navg, start_smooth), 
+        plt.loglog(f_short[:-1], 
+                 moving_average(SFS[:-1], navg, start_smooth), 
                  label = '$r =$ {:.1e}'.format(r), linewidth = 2, color = 
                  cividis_cmap(rind / len(rlist)), alpha = 0.8)
         print('{:.1e}'.format(r))
