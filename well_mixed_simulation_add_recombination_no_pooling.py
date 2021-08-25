@@ -6,7 +6,6 @@ Created on Thu Jun 17 14:46:16 2021
 """
 
 import numpy as np
-from multiprocessing import Pool
 import sys
 
 N = int(sys.argv[1]) # population size
@@ -121,18 +120,16 @@ def backward_sim(idx):
         individuals = unique
         n_tracked = len(individuals)
     SFS *= nsample
-    if np.mod(idx, 10) == 0:
+    if np.mod(idx, 5) == 0:
         np.savetxt('progress_for_N={}_Tfix={}_s={:.2f}_r={:.2e}_{}.txt'.format(
                 N, T_after_fix, s, r, idx), SFS[:5])    
     return SFS
 
 if __name__ == '__main__':
-
-        # this is the true sample number in case Ne < nbase.
-    # print(individuals)
-    p = Pool(10)
-    
-    SFS = np.sum(p.map(backward_sim, range(N_sim)), axis = 0) / N_sim
+    SFS = np.zeros(nsample)
+    for idx in range(N_sim):
+        SFS += backward_sim(idx)
+    SFS /= N_sim
     np.savetxt('expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.2e}_nsim={}.txt'.format(N, T_after_fix, s, r, N_sim), SFS)
 
 #f = np.arange(1, nsample + 1) / nsample

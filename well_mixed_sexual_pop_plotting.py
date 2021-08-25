@@ -5,9 +5,10 @@ Created on Tue Jul 13 18:14:22 2021
 @author: jim903
 """
 N = 10 ** 6
-Tfix = 0
+T_after_fix = 0
 s = 0.05
-rlist = [10 ** (-7), 10 ** (-6), 10 ** (-5), 10 ** (-4)]
+rlist = [10 ** (-8), 10 ** (-7), 10 ** (-6), 10 ** (-5), 10 ** (-4)]
+N_sim = 1000
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -30,10 +31,15 @@ plt.ylabel(r'$P(f)$')
 
 
 
+
 for rind in range(len(rlist)):
     r = rlist[rind]
+    if r < 10 ** (-6):
+        window_size = 30
+    else:
+        window_size = 200
     well_mixed_SFS = np.loadtxt(
-        'expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.1e}.txt'.format(N, Tfix, s, r))
+        'backward simulation data/expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.2e}_nsim={}.txt'.format(N, T_after_fix, s, r, N_sim))
 
     f = np.arange(1/ len(well_mixed_SFS), 
               1 + 1 / len(well_mixed_SFS), 
@@ -41,9 +47,9 @@ for rind in range(len(rlist)):
 
 
 
-    plt.loglog(moving_average(f, 50, 70), moving_average(well_mixed_SFS, 50
-               , 70), linewidth = 4, color = viridis_cmap(rind * 0.2 + 0.2)
-                , label = r'$r =${:.0e}'.format(r))
+    plt.loglog(moving_average(f, window_size, 100), moving_average(well_mixed_SFS, 
+              window_size , 100), linewidth = 4, color = viridis_cmap(rind * 0.2)
+                , label = r'$r =${:.0e}'.format(r), alpha = 0.5)
 
 
 plt.loglog(f, 1 / f ** 2 / s, label = r'$U_n / sf^2$', 

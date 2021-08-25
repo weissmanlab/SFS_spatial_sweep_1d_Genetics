@@ -5,7 +5,7 @@ prog_str = '''#!/bin/bash
 #SBATCH -N 1                # Ensure that all cores are on one machine
 #SBATCH -t 7-00:00          # Runtime in D-HH:MM, minimum of 10 minutes
 #SBATCH -p shared   # Partition to submit to
-#SBATCH --mem=16000           # Memory pool for all cores (see also --mem-per-cpu)
+#SBATCH --mem=25000           # Memory pool for all cores (see also --mem-per-cpu)
 #SBATCH -o L={}_rho={}_s={:.2e}_m={:.2e}_r={:.2e}_tfinal={}_nsample={}_tfix={}_sample_all_{}.out  # File to which STDOUT will be written, %j inserts jobid
 #SBATCH -e L={}_rho={}_s={:.2e}_m={:.2e}_r={:.2e}_tfinal={}_nsample={}_tifx={}_sample_all_{}.err  # File to which STDERR will be written, %j inserts jobid
 #SBATCH  --account=desai_lab
@@ -22,8 +22,8 @@ s = 0.05
 m = 0.25
 r = 0.00000001
 tfinal = 1000000
-nsample = 100000
-nSFS = 20000
+nsample = 20000
+nSFS = 100000
 tfix = 0
 
 for n in range(100):

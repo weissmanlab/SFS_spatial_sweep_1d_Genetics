@@ -42,9 +42,9 @@ tfix = 0
 
 
 # Change r - sample everywhere
-n = 100000
+n = 20000
 
-rlist = [10 ** (-3), 10 ** (-4), 10 ** (-5), 10 ** (-6), 10 ** (-7), 10 ** (-8)]
+rlist = [10 ** (-7)]
 
 nSFS = 2000
 f = np.arange(1, n + 1) / n
@@ -148,7 +148,7 @@ for rind in range(len(rlist)):
                 SFS += n * np.loadtxt(
         'backward simulation data/expected_SFS_L=' 
         + '{}_rho={}_s={:.2e}_m={:.2e}_r={:.2e}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-                 rho, s, m, r, tfinal, n, tfix, 5000, i))
+                 rho, s, m, r, tfinal, n, tfix, 20000, i))
         
         SFS /= (n_forward)
         plt.loglog(f_short[:-1], 

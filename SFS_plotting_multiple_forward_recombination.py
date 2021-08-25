@@ -13,9 +13,6 @@ def power_law_fit(x, a):
     ''' Use this to fit f^-2 (intermediate f) '''
     return a * x ** (-2)
 
-from scipy.optimize import curve_fit
-
-from labellines import labelLines
 
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif', size = 30, weight = 'bold')
@@ -29,23 +26,24 @@ plt.rc('font', family='serif', size = 30, weight = 'bold')
 #r = 0
 #n_forward = 100
 
-L = 500
-rho = 20000
+L = 2000
+rho = 5000
 N = rho * L
 s = 0.05
 m = 0.25
-tfinal = 1000000
+tfinal = 100000
 Un = 1
 r = 0
 n_forward = 100
 tfix = 0
-
+nSFS = 10000
 
 # Change r - sample everywhere
 n = 100000
+start_smooth = 100
+navg = 100
 
-
-rlist = [0.005, 0.0005, 0.0001, 0.00003, 0.00001, 0.000003, 0.000001, 0]
+rlist = [0.000001, 0]
 
 f = np.arange(1, n + 1) / n
 
@@ -86,25 +84,25 @@ plt.text(10 ** (-3) / 2, 8 * 10 ** 11, r'$P(f) = 2.5 U_{eff} / s f^2, U_{eff} = 
 for rind in range(len(rlist)):
     r = rlist[rind]
     Uneff = Un * (1 + 2 * N * r) 
-    if rind == 7:
-        start_smooth = 300
-        nSFS = 1000
-        navg = 30
-    elif rind > 2 :
-        start_smooth = 100
-        nSFS = 10000
-        navg = 200
-    else:
-        start_smooth = 300
-        nSFS = 2000
-        navg = 100
+#    if rind == 7:
+#        start_smooth = 300
+#        nSFS = 1000
+#        navg = 30
+#    elif rind > 2 :
+#        start_smooth = 100
+#        nSFS = 10000
+#        navg = 200
+#    else:
+#        start_smooth = 300
+#        nSFS = 2000
+#        navg = 100
 
     SFS = np.zeros(n)
     f_short = moving_average(f, navg, start_smooth)
     for i in range(n_forward):
             SFS += n * np.loadtxt(
     'backward simulation data/expected_SFS_L=' 
-    + '{}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
+    + '{}_N={}_s={:.6f}_m={:.6f}_r={:.7f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
              rho, s, m, r, tfinal, n, tfix, nSFS, i))
     
     SFS /= n_forward
@@ -119,9 +117,9 @@ for rind in range(len(rlist)):
            2.5 * Uneff / s / f_short2 ** 2, 
            linestyle = '-.', color = cividis_cmap(rind / len(rlist)), 
            linewidth = 6, alpha = 0.8)
-#        plt.loglog(f_short, Uneff * np.ones(len(f_short)) * L / v0,
-#                   linewidth = 6, linestyle = '--'
-#                   , color = cividis_cmap(rind / len(rlist)), alpha = 0.8)
+        plt.loglog(f_short, Uneff * np.ones(len(f_short)) * L / v0,
+                   linewidth = 6, linestyle = '--'
+                   , color = cividis_cmap(rind / len(rlist)), alpha = 0.8)
 
 
 
