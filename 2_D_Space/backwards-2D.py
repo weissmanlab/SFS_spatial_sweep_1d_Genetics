@@ -100,7 +100,12 @@ def runner(idx):
         individuals = unique
         Ne = Ne_parent
 
+        
+        
+        
     '''
+    If we have no recombination in the system, our simulation should end here since all individuals should coalesce to the point where the sweep first arose. 
+    
     The first round of coalescence simulation ends when we get to the time
     when the beneficial mmutation arose, and all the left over individuals
     are WT. From this point on, the coalescence will be extremely slow.
