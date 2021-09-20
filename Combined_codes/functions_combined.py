@@ -189,33 +189,31 @@ def track_individual(parent_array, choice_rand, which_parent_rand, mutation_val,
         parent_array_extended = np.concatenate(([parent_array[0]], parent_array, [parent_array[-1]]))
         
         # For mutant first, find the parent's deme and then its index inside the deme
-        left_parent_prob_mut = m / 2 * np.take(parent_array_extended, deme_arr)
-        mid_parent_prob_mut = (1 - m) * np.take(parent_array_extended, deme_arr + 1)
-        right_parent_prob_mut = m / 2 * np.take(parent_array_extended, deme_arr + 2)
-        total_prob_mut = (left_parent_prob_mut 
-                      + mid_parent_prob_mut 
-                      + right_parent_prob_mut)
+        left_parent_prob = m / 2 * np.take(parent_array_extended, deme_arr)
+        mid_parent_prob = (1 - m) * np.take(parent_array_extended, deme_arr + 1)
+        right_parent_prob = m / 2 * np.take(parent_array_extended, deme_arr + 2)
+        total_prob = (left_parent_prob + mid_parent_prob + right_parent_prob)
 
         # Set the cumulative probability
-        mid_parent_prob_mut = safe_divide(left_parent_prob_mut + mid_parent_prob_mut,total_prob_mut,val = 1)
-        left_parent_prob_mut = safe_divide(left_parent_prob_mut, total_prob_mut)
+        mid_parent_prob_cumulative = safe_divide(left_parent_prob + mid_parent_prob,total_prob,val = 1)
+        left_parent_prob_cumulative = safe_divide(left_parent_prob, total_prob)
 
 
         left_parent_idxs_mut = np.where(np.logical_and(
-            which_parent_rand < left_parent_prob_mut,
+            which_parent_rand < left_parent_prob_cumulative,
             mut_types_next == 1))[0]
         deme_arr_next[left_parent_idxs_mut] = (deme_arr[left_parent_idxs_mut] 
                                                - 1).astype(np.int64)
 
         mid_parent_idxs_mut = np.where(np.logical_and.reduce((
-            which_parent_rand > left_parent_prob_mut,
-            which_parent_rand < mid_parent_prob_mut,
+            which_parent_rand > left_parent_prob_cumulative,
+            which_parent_rand < mid_parent_prob_cumulative,
             mut_types_next == 1)))[0]
         deme_arr_next[mid_parent_idxs_mut] = (deme_arr[mid_parent_idxs_mut]).astype(np.int64)
 
 
         right_parent_idxs_mut = np.where(np.logical_and(
-            which_parent_rand > mid_parent_prob_mut,
+            which_parent_rand > mid_parent_prob_cumulative,
             mut_types_next == 1))[0]
         deme_arr_next[right_parent_idxs_mut] = (deme_arr[right_parent_idxs_mut]
                                                 + 1).astype(np.int64)
