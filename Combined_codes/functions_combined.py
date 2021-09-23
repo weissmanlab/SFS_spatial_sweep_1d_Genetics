@@ -4,8 +4,6 @@ Tracks migration and parent lineage as they coalesce back in time
 '''
 
 import numpy as np
-from multiprocessing import Pool
-import sys
 from numpy import random
 
 '''
@@ -24,7 +22,7 @@ l0 = 100
 def safe_divide(a, b, val=0):
     return np.divide(a, b, out=np.full_like(a, val), where=b != 0)
     
-def get_parent_presweep_arr_new(inds, N, m, L, dimension):
+def get_parent_presweep_arr_new(inds,rho, m, L, dimension):
     '''
     Function picks up a particular individiual, allows it to randomly migrate and tracks it to the parent till before the sweep happened
     
@@ -32,7 +30,7 @@ def get_parent_presweep_arr_new(inds, N, m, L, dimension):
     inds = [type of mutation (0 for wt), which deme number, individual within the deme] per row and # of rows is how many individuals left tp sample
     deme_arr = 1-D array of size L*L
     mut_type = 1 for neutral mutation, 0 for wt
-    N = number of indovoduals in a deme
+    rho = number of indovoduals in a deme
     m = migration rate
     L = number of demes in one direction
     '''
@@ -76,7 +74,7 @@ def get_parent_presweep_arr_new(inds, N, m, L, dimension):
         right_edge_idxs = np.where(deme_arr_new > L - 1)[0]
         deme_arr_new[right_edge_idxs] = L - 1
 
-        ind_in_deme_arr_new = (np.floor(choice_rand * N)).astype(np.int64)
+        ind_in_deme_arr_new = (np.floor(choice_rand * rho)).astype(np.int64)
         inds2 = np.vstack((mut_types_new,
                               deme_arr_new,
                               ind_in_deme_arr_new)).T
@@ -131,14 +129,14 @@ def get_parent_presweep_arr_new(inds, N, m, L, dimension):
         mid_idxs = np.where(which_deme_rand > bottom_range_prob)[0]
         deme_arr_new[mid_idxs] = (deme_arr[mid_idxs]).astype(np.int64)
 
-        ind_in_deme_arr_new = (np.floor(choice_rand * N)).astype(np.int64)
+        ind_in_deme_arr_new = (np.floor(choice_rand * rho)).astype(np.int64)
         inds2 = np.vstack((mut_types_new,
                               deme_arr_new,
                               ind_in_deme_arr_new)).T
         return inds2
     
         
-def get_individuals2_new(Ne, Ne_parent, individuals, N, m, L, dimension) :
+def get_individuals2_new(Ne, Ne_parent, individuals, rho, m, L, dimension) :
     '''
     for each bucket, choose between neighboring/own buckets with relative
     probabilities [m/4 for each neighbor and 1-m for being in the same bucket.
@@ -177,7 +175,7 @@ def get_individuals2_new(Ne, Ne_parent, individuals, N, m, L, dimension) :
     For mutant first, find the parent's deme and then its index inside the deme
     Perform for the entire deme list in one step.
     '''
-    mut_idxs, deme_arr_next, mut_types_next = track_individual(Ne_parent, choice_rand, which_parent_rand, 1, individuals, N, m, L, dimension)
+    mut_idxs, deme_arr_next, mut_types_next = track_individual(Ne_parent, choice_rand, which_parent_rand, 1, individuals, rho, m, L, dimension)
     ind_in_deme_arr_next[mut_idxs] = (np.floor(choice_rand[mut_idxs] * np.take(Ne_parent, deme_arr_next[mut_idxs]))).astype(np.int64)
 
     '''
@@ -198,7 +196,7 @@ def get_individuals2_new(Ne, Ne_parent, individuals, N, m, L, dimension) :
     return individuals2
     
     
-def track_individual(parent_array, choice_rand, which_parent_rand, mutation_val, individuals, N, m, L, dimension):
+def track_individual(parent_array, choice_rand, which_parent_rand, mutation_val, individuals, rho , m, L, dimension):
     '''
     parent_array = the array of parent values (coud be wildtype or mutant)
     choice_rand, which_parent_rand = random probablities created for makinf choices
@@ -319,7 +317,7 @@ def track_individual(parent_array, choice_rand, which_parent_rand, mutation_val,
         return given_idxs, deme_arr_next, mut_types_next
 
 
-def sample_data(Ne, n, N):
+def sample_data(Ne, n, rho):
     '''
     Pick random deme locations for as many individuals as we want to sample and what the index within a deme is 
     Currently, uniform probablity distributions
@@ -332,8 +330,8 @@ def sample_data(Ne, n, N):
         individuals_location = np.arange(0, round(sum(Ne)))
         n = sum(Ne)
     
-    ind_inside_deme = np.mod(individuals_location, N)
-    deme_ind = (individuals_location - ind_inside_deme) // N
+    ind_inside_deme = np.mod(individuals_location, rho)
+    deme_ind = (individuals_location - ind_inside_deme) // rho
 
     ###Adding mutants to the data structure
     for k in range(n):  
