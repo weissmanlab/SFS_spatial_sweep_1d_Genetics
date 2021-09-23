@@ -35,15 +35,6 @@ def get_parent_presweep_arr_new(inds, N, m, L, dimension):
     N = number of indovoduals in a deme
     m = migration rate
     L = number of demes in one direction
-
-
-    The addition and subtraction of indexes is to do migration in 2-D space in a 1-D array. 
-    For index i:
-    Top = (i-L)%(L*L)
-    Bottom = (i+L)%(L*)
-    Right = i + [-(L-1) if (i+1)%L ==0 else 1][0]
-    Left = i + [(L-1) if (i)%L ==0 else -1][0]
-    This takes care of edge cases also
     '''
     
     mut_types, deme_arr, ind_in_deme_arr = inds.T
@@ -61,7 +52,48 @@ def get_parent_presweep_arr_new(inds, N, m, L, dimension):
     
     if (dimension == 1):
         print(dimension)
+        '''Creating Cummulative Probablities of each direction'''
+        left_range_prob = m / 2 # prob of going to the left
+        mid_range_prob = 1 - m / 2 # P(left) + P(middle)
+        
+        
+        '''The location of individuals where probablty to move left is found is in left_idx. For those indivduals, move the location. Repeat for others'''
+        
+        left_idxs = np.where(which_deme_rand < left_range_prob)[0]
+        deme_arr_new[left_idxs] = (deme_arr[left_idxs] - 1).astype(np.int64)
+
+        mid_idxs = np.where(np.logical_and(
+            which_deme_rand > left_range_prob,
+            which_deme_rand < mid_range_prob))[0]
+        deme_arr_new[mid_idxs] = (deme_arr[mid_idxs]).astype(np.int64)
+
+        right_idxs = np.where(which_deme_rand > mid_range_prob)[0]
+        deme_arr_new[right_idxs] = (deme_arr[right_idxs] + 1).astype(np.int64)
+
+        left_edge_idxs = np.where(deme_arr_new < 0)[0]
+        deme_arr_new[left_edge_idxs] = 0
+
+        right_edge_idxs = np.where(deme_arr_new > L - 1)[0]
+        deme_arr_new[right_edge_idxs] = L - 1
+
+        ind_in_deme_arr_new = (np.floor(choice_rand * N)).astype(np.int64)
+        inds2 = np.vstack((mut_types_new,
+                              deme_arr_new,
+                              ind_in_deme_arr_new)).T
+        
+        return inds2
+        
+    
     else:  ##2-D
+        '''
+        The addition and subtraction of indexes is to do migration in 2-D space in a 1-D array. 
+        For index i:
+            Top = (i-L)%(L*L)
+            Bottom = (i+L)%(L*)
+            Right = i + [-(L-1) if (i+1)%L ==0 else 1][0]
+            Left = i + [(L-1) if (i)%L ==0 else -1][0]
+        This takes care of edge cases also
+        '''
         
         '''Creating Cummulative Probablities of each direction'''
         left_range_prob = m / 4. # prob of going to the left deme
@@ -72,7 +104,6 @@ def get_parent_presweep_arr_new(inds, N, m, L, dimension):
         # Sum of these 5 probablities is 1
 
         '''
-        Monte Carlo like method of choosing which deme the migration happens to.
         Example: Left idx is an array of all indexes of deme_arr that meet the condition for migrating left. 
         For all these indexes, we update the values into a new array using migration probablities (explained at the end)
         Repeat for right, top, bottom, mid
