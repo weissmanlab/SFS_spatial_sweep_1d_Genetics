@@ -21,12 +21,12 @@ from numpy import random
 from functions_combined import *
 import matplotlib.pyplot as plt
 import time
-import psutil
+import psutil 
 
 start = time.time()
 
 L = int(sys.argv[1]) # number of demes
-N = int(sys.argv[2]) # deme capacity
+rho = int(sys.argv[2]) # deme capacity
 s = format(float(sys.argv[3]),'0.3f') # selection coef
 m = float(sys.argv[4]) # migration rate
 m_file = format(m,'0.2f')
@@ -36,8 +36,10 @@ N_SFS = int(sys.argv[7]) # number of coalescent simulation we run for ensemble a
 T_after_fix = int(sys.argv[8]) # number of generations between fixation and sampling
 Nforw = int(sys.argv[9]) ##Forwrad simulation Number
 dimension = int(sys.argv[10]) ##To check if to run in 1-D or 2-D 
+extra_gen_cutoff = sys.argv[11] if len(sys.argv) >= 12 else int(L ** 2 / m / rho)
 
-## python combine_codes.py L N s m l0 n_base N_SFS T_after_fix Nforw dimensions
+
+## python backwards_combined.py L N s m l0 n_base N_SFS T_after_fix Nforw dimensions
 ## python backwards_combined.py 500 20000 0.05 0.250 1 10000 4 3000 1 1
 
 
@@ -50,7 +52,7 @@ if (dimension==1):
 elif(dimension==2):
     print('2-D')
     ##Read input file and flatten lines[i] into 1-D array here for use within existing framework
-    fname = 'L='+str(L)+'_N='+str(N)+'_s='+str(s)+'_m='+str(m_file)+'_l0='+str(l0)+'_Nforw='+str(Nforw)+'.txt'
+    fname = 'L='+str(L)+'_N='+str(rho)+'_s='+str(s)+'_m='+str(m_file)+'_l0='+str(l0)+'_Nforw='+str(Nforw)+'.txt'
     #print(fname)
     lines = np.loadtxt(fname, dtype=np.int64)
     #print(len(lines))
@@ -76,7 +78,7 @@ def runner(idx):
 
     '''Creating the primary data structure by sampling'''
     #individuals format will be [mut_type, deme index, individual index (inside the deme)] in a row and as many rows as individuals we sample
-    individuals = sample_data(Ne, n, N)
+    individuals = sample_data(Ne, n, rho)
     unique, leaf_counts = np.unique(individuals, axis = 0, return_counts = True) #To avoid overcounting of repeated locations and ensure we actually sample what we want
     ###The AFS is the histogram of these leaf counts counted over all generations
     hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
@@ -90,7 +92,7 @@ def runner(idx):
     
     while t_after_fix < T_after_fix:
         t_after_fix += 1
-        individuals2 = get_individuals2_new(Ne, Ne, individuals, N, m, L, dimension )
+        individuals2 = get_individuals2_new(Ne, Ne, individuals, rho, m, L, dimension )
         individuals2 = np.repeat(individuals2, leaf_counts, axis = 0)  ###Repeat the values to keep the size of the array constant as we lose individuals coalescing back in time. 
         unique, leaf_counts = np.unique(individuals2, axis = 0, return_counts = True)  ##Get rid of replicates from the previous step as well as reduce sample size if individuals have coalesced
         hist, bin_edges = np.histogram(leaf_counts,bins = np.arange(1, n + 2))
@@ -105,7 +107,7 @@ def runner(idx):
 
         line_num -= 1
         Ne_parent = (lines[line_num]).astype(np.int64) ##Getting the parent generation from each time step of our forward simulation
-        individuals2 = get_individuals2_new(Ne, Ne_parent, individuals, N, m, L, dimension)
+        individuals2 = get_individuals2_new(Ne, Ne_parent, individuals, rho, m, L, dimension)
         individuals2 = np.repeat(individuals2, leaf_counts, axis = 0)
         unique, leaf_counts = np.unique(individuals2, axis = 0, return_counts = True)
         hist, bin_edges = np.histogram(leaf_counts,bins = np.arange(1, n + 2))
@@ -128,12 +130,13 @@ def runner(idx):
     branch_len = 0 # number of generations until first merging event
     extra_gen = 0 # extra run time before stopping the coalescent simulation.
 
-    while left_individuals > 1 and extra_gen < int(L ** 2 / m / N):  ###Will it be same for 2-D
+
+    while left_individuals > 1 and extra_gen < extra_gen_cutoff:  ###Will it be same for 2-D
         print('extra gens')
         branch_len += 1
         extra_gen += 1
 
-        individuals2 = get_parent_presweep_arr_new(individuals, N, m, L, dimension)
+        individuals2 = get_parent_presweep_arr_new(individuals, rho, m, L, dimension)
         individuals2 = np.repeat(individuals2, leaf_counts, axis = 0)
 
         unique, leaf_counts = np.unique(individuals2,
@@ -165,7 +168,7 @@ def runner(idx):
     '''
     
     while left_individuals > 1:
-        T2 = 1 + random.exponential(2 * N * L / ((left_individuals - 1) * left_individuals / 2)) ###Drawing the T2 from geometric distribution
+        T2 = 1 + random.exponential(2 * rho * L / ((left_individuals - 1) * left_individuals / 2)) ###Drawing the T2 from geometric distribution
         hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
         SFS += hist * T2 ##That many branches will exist
         coal_inds = random.choice(range(left_individuals), size = 2, replace = False)
@@ -190,7 +193,7 @@ if __name__ == '__main__':
     SFS = np.sum(SFS_items, axis=0)
     SFS /= N_SFS
     np.savetxt('expected_SFS_L={}_N={}_s={:.3f}_m={:.2f}_nsample={}_tfix={}_sample_uniform_navg={}_Nforw={}.txt'.format(int(L),
-                int(N), float(s), float(m), int(nbase), int(T_after_fix), int(N_SFS), int(Nforw)), SFS)
+                int(rho), float(s), float(m), int(nbase), int(T_after_fix), int(N_SFS), int(Nforw)), SFS)
 
 
     test = np.arange(1,nbase)
@@ -201,7 +204,7 @@ if __name__ == '__main__':
     plt.xscale('log')
     plt.savefig('Test.jpeg')
     end = time.time()
-    #print(start-end) 
-    #print (psutil.virtual_memory())
+    print(start-end) 
+    print (psutil.virtual_memory())
     #plt.show()
     
