@@ -1,5 +1,5 @@
 '''
-List of functions being used to create the backward time simulation for 2-D sweeps
+List of functions being used to create the backward time simulation for sweeps
 Tracks migration and parent lineage as they coalesce back in time 
 '''
 
