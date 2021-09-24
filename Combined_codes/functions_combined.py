@@ -299,7 +299,7 @@ def track_individual(parent_array, choice_rand, which_parent_rand, mutation_val,
             which_parent_rand > right_parent_prob_cumulative,
             which_parent_rand < top_parent_prob_cumulative,
             mut_types_next == mutation_val)))[0]
-        deme_arr_next[top_parent_idxs] = (((deme_arr[top_parent_idxs]+L)%(L*L))).astype(np.int64)
+        deme_arr_next[top_parent_idxs] = (((deme_arr[top_parent_idxs]-L)%(L*L))).astype(np.int64)
         
         bottom_parent_idxs = np.where(np.logical_and.reduce((
             which_parent_rand > top_parent_prob_cumulative,
