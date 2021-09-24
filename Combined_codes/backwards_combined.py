@@ -21,7 +21,6 @@ from numpy import random
 from functions_combined import *
 import matplotlib.pyplot as plt
 import time
-import psutil 
 
 start = time.time()
 
@@ -91,6 +90,7 @@ def runner(idx):
     #Since the population doesnt change once sweep has fixed, we dont need to change the input data for this
     
     while t_after_fix < T_after_fix:
+        #print ('sampling after fixation')
         t_after_fix += 1
         individuals2 = get_individuals2_new(Ne, Ne, individuals, rho, m, L, dimension )
         individuals2 = np.repeat(individuals2, leaf_counts, axis = 0)  ###Repeat the values to keep the size of the array constant as we lose individuals coalescing back in time. 
@@ -103,7 +103,7 @@ def runner(idx):
     line_num = -1
     
     while (len(individuals) > 1) and (line_num > -len(lines)):  ##The maximum we can go backward in time is till T2
-        #print(line_num)
+        #print('sweep')
 
         line_num -= 1
         Ne_parent = (lines[line_num]).astype(np.int64) ##Getting the parent generation from each time step of our forward simulation
@@ -120,11 +120,16 @@ def runner(idx):
     '''
     The first round of coalescence simulation ends when we get to the time
     when the beneficial mmutation arose, and all the left over individuals
-    are WT. From this point on, the coalescence will be extremely slow.
+    are WT. 
+    If there is no recombination, the simulation should end here since the MRCA 
+    will be the benficial mutation that gave rise to the sweep. 
+    
+    From this point on, the coalescence will be extremely slow.
     Therefore, we will run the same kind of simulation until the individuals
     disperse for L^2 / m / N. We speed up the simulation by recording the number
     of generations between the coalescence events.
     '''
+    
 
     left_individuals = len(individuals)  ##Individuas left to still coalesce in time before the mutation arose
     branch_len = 0 # number of generations until first merging event
@@ -132,7 +137,7 @@ def runner(idx):
 
 
     while left_individuals > 1 and extra_gen < extra_gen_cutoff:  ###Will it be same for 2-D
-        print('extra gens')
+        #print('extra gens')
         branch_len += 1
         extra_gen += 1
 
@@ -168,6 +173,7 @@ def runner(idx):
     '''
     
     while left_individuals > 1:
+        #print('approximation')
         T2 = 1 + random.exponential(2 * rho * L / ((left_individuals - 1) * left_individuals / 2)) ###Drawing the T2 from geometric distribution
         hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
         SFS += hist * T2 ##That many branches will exist
@@ -178,6 +184,7 @@ def runner(idx):
         individuals = unique
         left_individuals = len(individuals)
 
+    print ('caclulations')
     f = np.arange(1, n + 1) / n  ##Calculating frquency of mutant
     H = np.sum(2 * f * (1 - f) * SFS) / np.sum(SFS)  ##Calculating Heterezygosity
     return SFS, H
@@ -202,7 +209,7 @@ if __name__ == '__main__':
     plt.plot(SFS)
     plt.yscale('log')
     plt.xscale('log')
-    plt.savefig('Test.jpeg')
+    #plt.savefig('Test.jpeg')
     end = time.time()
     print(start-end) 
     print (psutil.virtual_memory())
