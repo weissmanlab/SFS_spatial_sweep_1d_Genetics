@@ -36,7 +36,7 @@ T_after_fix = int(sys.argv[8]) # number of generations between fixation and samp
 Nforw = int(sys.argv[9]) ##Forwrad simulation Number
 dimension = int(sys.argv[10]) ##To check if to run in 1-D or 2-D 
 extra_gen_cutoff = sys.argv[11] if len(sys.argv) >= 12 else int(L ** 2 / m / rho)
-
+r = float(sys.argv[12]) # recombination rate
 
 ## python backwards_combined.py L N s m l0 n_base N_SFS T_after_fix Nforw dimensions
 ## python backwards_combined.py 500 20000 0.05 0.250 1 10000 4 3000 1 1
@@ -70,14 +70,14 @@ def runner(idx):
     Picks a generation, starting from the last one. Tracks the sampled indviduals backwards in time 
     till all mergers have happened and then calculates the branch length to get the SFS.
     '''
-    Ne = lines[-1]    ##Mutants in a deme. We pick the absolute last generation we simulated forward in time till to start simulating backwards. 
+    rho_e = lines[-1]    ##Mutants in a deme. We pick the absolute last generation we simulated forward in time till to start simulating backwards. 
     n = nbase
     SFS = np.zeros(n)
-    Ne = (Ne).astype(np.int64)
+    rho_e = (rho_e).astype(np.int64)
 
     '''Creating the primary data structure by sampling'''
     #individuals format will be [mut_type, deme index, individual index (inside the deme)] in a row and as many rows as individuals we sample
-    individuals = sample_data(Ne, n, rho)
+    individuals = sample_data(rho_e, n, rho)
     unique, leaf_counts = np.unique(individuals, axis = 0, return_counts = True) #To avoid overcounting of repeated locations and ensure we actually sample what we want
     ###The AFS is the histogram of these leaf counts counted over all generations
     hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
@@ -92,8 +92,10 @@ def runner(idx):
     while t_after_fix < T_after_fix:
         #print ('sampling after fixation')
         t_after_fix += 1
-        individuals2 = get_individuals2_new(Ne, Ne, individuals, rho, m, L, dimension)
-        individuals, leaf_counts = coalescent(individuals2, leaf_counts)
+        individuals_post_recombination = recombination(rho_e, rho_e, individuals, rho, r)
+        individuals_post_migration = migration(rho_e, individuals_post_recombination, rho, m, L, dimension)
+
+        individuals, leaf_counts = coalescent(individuals_post_migration, leaf_counts)
         hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
         SFS += hist
 
@@ -104,13 +106,14 @@ def runner(idx):
         #print('sweep')
 
         line_num -= 1
-        Ne_parent = (lines[line_num]).astype(np.int64) ##Getting the parent generation from each time step of our forward simulation
-        individuals2 = get_individuals2_new(Ne, Ne_parent, individuals, rho, m, L, dimension)
-        individuals, leaf_counts = coalescent(individuals2, leaf_counts)
+        rho_e_parent = (lines[line_num]).astype(np.int64) ##Getting the parent generation from each time step of our forward simulation
+        individuals_post_recombination = recombination(rho_e, rho_e_parent, individuals, rho, r)
+        individuals_post_migration = migration(rho_e_parent, individuals_post_recombination, rho, m, L, dimension)
+        individuals, leaf_counts = coalescent(individuals_post_migration, leaf_counts)
         hist, bin_edges = np.histogram(leaf_counts,bins = np.arange(1, n + 2))
 
         SFS += hist
-        Ne = Ne_parent
+        rho_e = rho_e_parent
     
 
     '''
@@ -136,9 +139,13 @@ def runner(idx):
         #print('extra gens')
         branch_len += 1
         extra_gen += 1
+        rho_e_parent_pre_sweep = np.zeros_like(rho_e)
+        rho_e_parent_pre_sweep = (rho_e_parent_pre_sweep).astype(np.int64)
 
-        individuals2 = get_parent_presweep_arr_new(individuals, rho, m, L, dimension)
-        individuals, leaf_counts = coalescent(individuals2, leaf_counts)
+        # Before the beneficial mutation appeared, everyone is WT. Thus, rho_e_parent is just an array of zeros.
+        # Also, we can skip the recombination step, since the genotype will always be zero for everyone.
+        individuals_post_migration = migration(rho_e_parent_pre_sweep, individuals, rho, m, L, dimension)
+        individuals, leaf_counts = coalescent(individuals_post_migration, leaf_counts)
         current_individuals_counts = len(individuals)
         if current_individuals_counts < left_individuals:
             hist, bin_edges = np.histogram(leaf_counts * branch_len, bins = np.arange(1, n + 2))
