@@ -208,6 +208,6 @@ if __name__ == '__main__':
     #plt.savefig('Test.jpeg')
     end = time.time()
     print(start-end) 
-    print (psutil.virtual_memory())
+    print(psutil.virtual_memory())
     #plt.show()
     
