@@ -44,7 +44,7 @@ extra_gen_cutoff = sys.argv[11] if len(sys.argv) >= 12 else int(L ** 2 / m / rho
 
 if (dimension==1):
     print ('1_D')
-    fname = 'L=500_N=20000_s=0.050000_m=0.250000_tfinal=1000000_0.txt'
+    fname = 'L={}_N={}_s={:.6f}_m={:.6f}_tfinal=1000000_{}.txt'.format(L, rho, s, m, Nforw)
     print(fname)
     lines = np.loadtxt(fname, dtype=np.int64)
 
