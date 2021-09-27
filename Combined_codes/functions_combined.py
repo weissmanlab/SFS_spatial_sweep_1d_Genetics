@@ -340,3 +340,34 @@ def sample_data(Ne, n, rho):
         
     individuals = np.array(individuals)
     return individuals
+
+def coalescent(parents, leaf_counts_offspring):
+    '''
+    Input - list of parents (there could be duplicates), leaf counts for the offsprings. 
+    Each element of the two list should correspond to the same offspring individual. 
+
+    Find whether there are any common parents going one generation backward in time. 
+    (i.e. check coalescent events in 1 gen)
+    Based on the information, update the list of leaf counts, which always sums up to nsample.
+    If two branches coalesce, the length of the leaf counts list will be reduced by 1 because the 
+    common parent's leaf counts = sum of two offspring's leaf counts.  
+    
+    Output - the set of parents (i.e. no duplicate), and leaf counts for the parents
+    '''
+    num_parents = len(parents)
+    parents_set = np.array([])
+    leaf_counts_parents = np.array([])
+    for i in range(num_parents):
+        parent = parents[i]
+        leaf_count_offspring = leaf_counts_offspring[i]
+        if len(parents_set) == 0:
+            parents_set = np.array([parent])
+            leaf_counts_parents = np.array([leaf_count_offspring])
+        elif (parent ==  parents_set).all(1).any():
+            idx = np.where((parents_set == parent).all(1))[0][0]
+            leaf_counts_parents[idx] += leaf_count_offspring
+        else:
+            parents_set = np.append(parents_set, [parent], axis = 0)
+            leaf_counts_parents = np.append(leaf_counts_parents, leaf_count_offspring)
+    
+    return parents_set, leaf_counts_parents

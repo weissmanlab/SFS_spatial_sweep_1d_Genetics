@@ -42,21 +42,21 @@ extra_gen_cutoff = sys.argv[11] if len(sys.argv) >= 12 else int(L ** 2 / m / rho
 ## python backwards_combined.py 500 20000 0.05 0.250 1 10000 4 3000 1 1
 
 
-if (dimension==1):
+if (dimension == 1):
     print ('1_D')
     fname = 'L={}_N={}_s={:.6f}_m={:.6f}_tfinal=1000000_{}.txt'.format(L, rho, s, m, Nforw)
     print(fname)
-    lines = np.loadtxt(fname, dtype=np.int64)
+    lines = np.loadtxt(fname, dtype = np.int64)
 
-elif(dimension==2):
+elif(dimension == 2):
     print('2-D')
     ##Read input file and flatten lines[i] into 1-D array here for use within existing framework
     fname = 'L='+str(L)+'_N='+str(rho)+'_s='+str(s)+'_m='+str(m_file)+'_l0='+str(l0)+'_Nforw='+str(Nforw)+'.txt'
     #print(fname)
-    lines = np.loadtxt(fname, dtype=np.int64)
+    lines = np.loadtxt(fname, dtype = np.int64)
     #print(len(lines))
-    tfinal = int(len(lines)/L)
-    lines = lines.reshape(tfinal, L,L)  ###lines = Data from forward simulation
+    tfinal = int(len(lines) / L)
+    lines = lines.reshape(tfinal, L, L)  ###lines = Data from forward simulation
     lines = [lines[i].flatten() for i in range(len(lines))]
     print(tfinal)    
 else:
@@ -92,12 +92,10 @@ def runner(idx):
     while t_after_fix < T_after_fix:
         #print ('sampling after fixation')
         t_after_fix += 1
-        individuals2 = get_individuals2_new(Ne, Ne, individuals, rho, m, L, dimension )
-        individuals2 = np.repeat(individuals2, leaf_counts, axis = 0)  ###Repeat the values to keep the size of the array constant as we lose individuals coalescing back in time. 
-        unique, leaf_counts = np.unique(individuals2, axis = 0, return_counts = True)  ##Get rid of replicates from the previous step as well as reduce sample size if individuals have coalesced
-        hist, bin_edges = np.histogram(leaf_counts,bins = np.arange(1, n + 2))
+        individuals2 = get_individuals2_new(Ne, Ne, individuals, rho, m, L, dimension)
+        individuals, leaf_counts = coalescent(individuals2, leaf_counts)
+        hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
         SFS += hist
-        individuals = unique
 
     '''Going back in time WHILE the wave is fixing, all the way back to the time when mutation is first established'''
     line_num = -1
@@ -108,12 +106,10 @@ def runner(idx):
         line_num -= 1
         Ne_parent = (lines[line_num]).astype(np.int64) ##Getting the parent generation from each time step of our forward simulation
         individuals2 = get_individuals2_new(Ne, Ne_parent, individuals, rho, m, L, dimension)
-        individuals2 = np.repeat(individuals2, leaf_counts, axis = 0)
-        unique, leaf_counts = np.unique(individuals2, axis = 0, return_counts = True)
+        individuals, leaf_counts = coalescent(individuals2, leaf_counts)
         hist, bin_edges = np.histogram(leaf_counts,bins = np.arange(1, n + 2))
 
         SFS += hist
-        individuals = unique
         Ne = Ne_parent
     
 
@@ -142,23 +138,13 @@ def runner(idx):
         extra_gen += 1
 
         individuals2 = get_parent_presweep_arr_new(individuals, rho, m, L, dimension)
-        individuals2 = np.repeat(individuals2, leaf_counts, axis = 0)
-
-        unique, leaf_counts = np.unique(individuals2,
-                                        axis = 0, return_counts = True)
-        current_individuals_counts = len(unique)
-        individuals2 = unique
-
-        if left_individuals == current_individuals_counts:
-            individuals = individuals2
-        else:
+        individuals, leaf_counts = coalescent(individuals2, leaf_counts)
+        current_individuals_counts = len(individuals)
+        if current_individuals_counts < left_individuals:
             hist, bin_edges = np.histogram(leaf_counts * branch_len, bins = np.arange(1, n + 2))
             SFS += hist
-            individuals = unique
-            branch_len = 0  ###Reset branch lenghth for the next 'x-ton'
-            
-
-        left_individuals = len(individuals)
+            branch_len = 0
+        left_individuals = current_individuals_counts
         
         
     '''    
@@ -177,12 +163,15 @@ def runner(idx):
         T2 = 1 + random.exponential(2 * rho * L / ((left_individuals - 1) * left_individuals / 2)) ###Drawing the T2 from geometric distribution
         hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
         SFS += hist * T2 ##That many branches will exist
+        # Now choose two random branches that will coalesce in T2 generations. 
         coal_inds = random.choice(range(left_individuals), size = 2, replace = False)
-        individuals[coal_inds[0]] = individuals[coal_inds[1]] 
-        individuals2 = np.repeat(individuals, leaf_counts, axis = 0)
-        unique, leaf_counts = np.unique(individuals2, axis = 0, return_counts = True)
-        individuals = unique
-        left_individuals = len(individuals)
+        # Like in the coalescent function, as two branches merge, two leaf counts are summed up and the number of remaining individuals decreases by 1.
+        leaf_counts_copy = leaf_counts
+        leaf_counts_copy[coal_inds[0]] += leaf_counts[coal_inds[1]]
+        leaf_counts_copy[coal_inds[1]] = 0
+        leaf_counts = leaf_counts_copy[leaf_counts_copy > 0]
+        left_individuals -= 1
+
 
     print ('caclulations')
     f = np.arange(1, n + 1) / n  ##Calculating frquency of mutant
