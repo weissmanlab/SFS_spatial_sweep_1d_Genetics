@@ -19,10 +19,10 @@ T_after_fix = 0 # number of generations between fixation and sampling
 n_forward = 1 # forward time simulation number
 l0 = 100
 '''
-def safe_divide(a, b, val=0):
-    return np.divide(a, b, out=np.full_like(a, val), where=b != 0)
+def safe_divide(a, b, val = 0):
+    return np.divide(a, b, out = np.full_like(a, val), where = b != 0)
     
-def get_parent_presweep_arr_new(inds,rho, m, L, dimension):
+def get_parent_presweep_arr_new(inds, rho, m, L, dimension):
     '''
     Function picks up a particular individiual, allows it to randomly migrate and tracks it to the parent till before the sweep happened
     
@@ -45,14 +45,13 @@ def get_parent_presweep_arr_new(inds,rho, m, L, dimension):
     len_inds = len(inds)
     which_deme_rand = random.random(len_inds)
     #array of random numbers used to determine which deme the parent is in. Its an array as big as the number of demes so we can track all individuals .
-    choice_rand = random.random(len_inds)  
-    #random numbers used to determine which individual to pick in each deme.Its an array as big as the number of demes so we can track all individuals .
     
     if (dimension == 1):
         print(dimension)
         '''Creating Cummulative Probablities of each direction'''
-        left_range_prob = m / 2 # prob of going to the left
-        mid_range_prob = 1 - m / 2 # P(left) + P(middle)
+        left_range_prob = m / 2 # prob of going to the left ( = CDF of going to the left)
+        mid_range_prob = 1 - m / 2 # P(left) + P(middle) (i.e. CDF of going to the middle)
+        # CDF of going to the right = 1
         
         
         '''The location of individuals where probablty to move left is found is in left_idx. For those indivduals, move the location. Repeat for others'''
@@ -74,7 +73,7 @@ def get_parent_presweep_arr_new(inds,rho, m, L, dimension):
         right_edge_idxs = np.where(deme_arr_new > L - 1)[0]
         deme_arr_new[right_edge_idxs] = L - 1
 
-        ind_in_deme_arr_new = (np.floor(choice_rand * rho)).astype(np.int64)
+        ind_in_deme_arr_new = random.randint(0, rho, size = len_inds, dtype = np.int64)
         inds2 = np.vstack((mut_types_new,
                               deme_arr_new,
                               ind_in_deme_arr_new)).T
@@ -129,14 +128,57 @@ def get_parent_presweep_arr_new(inds,rho, m, L, dimension):
         mid_idxs = np.where(which_deme_rand > bottom_range_prob)[0]
         deme_arr_new[mid_idxs] = (deme_arr[mid_idxs]).astype(np.int64)
 
-        ind_in_deme_arr_new = (np.floor(choice_rand * rho)).astype(np.int64)
+        ind_in_deme_arr_new = random.randint(0, rho, size = len_inds, dtype = np.int64)
         inds2 = np.vstack((mut_types_new,
                               deme_arr_new,
                               ind_in_deme_arr_new)).T
         return inds2
     
-        
-def get_individuals2_new(Ne, Ne_parent, individuals, rho, m, L, dimension) :
+
+def recombination(rho_e, rho_e_parent, individuals, rho, r):
+    '''
+    Let individuals recombine with others in the same deme. This will change the mutation types of the individuals.
+    Output - individuals with the updated genotypes after recombination events.
+    '''
+    rho_wt_parent = (rho - rho_e_parent).astype(np.int64)
+    mut_types, deme_arr, ind_in_deme_arr = individuals.T
+    mut_types = (mut_types).astype(np.int64)
+    deme_arr = (deme_arr).astype(np.int64)
+
+
+    post_rec_mut_types = mut_types
+    # Draw a random number between 0 and 1 for every individual. 
+    # Those numbers will be compared to the CDF of recombination with WT or a mutant.
+    rand_for_recom = random.random(len(mut_types))
+
+
+    corresponding_rho_e = rho_e[deme_arr]
+    # Three possible events - recombine with a mutant, recombine with WT, no recombination
+    # CDF of first event = r * rho_e / rho
+    # CDF of second event = r * rho_e / rho + r * rho_wt / rho = r
+    # CDF of no recombination = 1
+
+    # a list of indices of the individuals that recombine with a mutant 
+    idxs_recom_mut = np.where(rand_for_recom < r * corresponding_rho_e / rho)[0]
+
+    # a list of indices of the individuals that recombine with a WT 
+    idxs_recom_wt = np.where(np.logical_and(
+        rand_for_recom > r * corresponding_rho_e / rho, 
+        rand_for_recom < r
+    ))[0]
+
+    post_rec_mut_types[idxs_recom_mut] = 1
+    post_rec_mut_types[idxs_recom_wt] = 0
+    post_rec_mut_types = (post_rec_mut_types).astype(np.int64)
+    individuals_post_rec = np.vstack((post_rec_mut_types, deme_arr, ind_in_deme_arr)).T
+
+    del post_rec_mut_types
+    del deme_arr
+    del mut_types
+    del ind_in_deme_arr
+    return individuals_post_rec
+
+def get_individuals2_new(rho_e, rho_e_parent, individuals, rho, m, L, dimension, r) :
     '''
     for each bucket, choose between neighboring/own buckets with relative
     probabilities [m/4 for each neighbor and 1-m for being in the same bucket.
@@ -169,20 +211,21 @@ def get_individuals2_new(Ne, Ne_parent, individuals, rho, m, L, dimension) :
     ind_in_deme_arr_next = np.zeros_like(ind_in_deme_arr)
     len_inds = len(deme_arr)
     which_parent_rand = random.random(len_inds) # to choose btw left/mid/right/top/bottom
-    choice_rand = random.random(len_inds) # used for index within the deme
     
     '''
     For mutant first, find the parent's deme and then its index inside the deme
     Perform for the entire deme list in one step.
     '''
-    mut_idxs, deme_arr_next, mut_types_next = track_individual(Ne_parent, choice_rand, which_parent_rand, 1, individuals, rho, m, L, dimension)
-    ind_in_deme_arr_next[mut_idxs] = (np.floor(choice_rand[mut_idxs] * np.take(Ne_parent, deme_arr_next[mut_idxs]))).astype(np.int64)
+    individuals = recombination(rho_e, rho_e_parent, individuals, rho, r)
+    mut_idxs, wt_idxs, deme_arr_next, mut_types_next = migration(rho_e_parent, which_parent_rand, 1, individuals, rho, m, L, dimension)
+    ind_in_deme_arr_next[mut_idxs] = random.randint(0, np.take(rho_e_parent, 
+                        deme_arr_next[mut_idxs]))
 
     '''
     Next for Wildtype find the parent's deme and then its index inside the deme
     Do for the entire array at the same time 
     '''
-    #wt_idxs, deme_arr_next, mut_types_next = track_individual(Nwt_parent, choice_rand, which_parent_rand, 0, individuals, N, m, L)
+    #wt_idxs, deme_arr_next, mut_types_next = migration(Nwt_parent, choice_rand, which_parent_rand, 0, individuals, N, m, L)
     #ind_in_deme_arr_next[wt_idxs] = (np.floor(choice_rand[wt_idxs] * np.take(Nwt_parent, deme_arr_next[wt_idxs]))).astype(np.int64)
 
     ###Recreate the data structure we had for passing into function
@@ -192,13 +235,13 @@ def get_individuals2_new(Ne, Ne_parent, individuals, rho, m, L, dimension) :
     del deme_arr    
     del mut_types_next
     del which_parent_rand
-    del choice_rand
     return individuals2
     
-    
-def track_individual(parent_array, choice_rand, which_parent_rand, mutation_val, individuals, rho , m, L, dimension):
+
+
+def migration(rho_e_parent, which_parent_rand, mutation_val, individuals, rho , m, L, dimension):
     '''
-    parent_array = the array of parent values (coud be wildtype or mutant)
+    rho_e = array of number of mutant individuals in each deme
     choice_rand, which_parent_rand = random probablities created for makinf choices
     mutation_val = value to compare nearest neighbors. Can only coalesce with the same type.
     1 if mutant, 0 if wildtype
@@ -214,35 +257,39 @@ def track_individual(parent_array, choice_rand, which_parent_rand, mutation_val,
         deme_arr = (deme_arr).astype(np.int64)
         mut_types_next = np.copy(mut_types)
         deme_arr_next = np.zeros_like(deme_arr)
+        ind_in_deme_arr_next = np.zeros_like(ind_in_deme_arr)
+        rho_wt_parent = (rho - rho_e_parent).astype(np.int64)
 
-        parent_array_extended = np.concatenate(([parent_array[0]], parent_array, [parent_array[-1]]))
+        rho_e_parent_extended = np.concatenate(([rho_e_parent[0]], rho_e_parent, [rho_e_parent[-1]]))
+        rho_wt_parent_extended = np.concatenate(([rho_wt_parent[0]], rho_wt_parent, [rho_wt_parent[-1]]))
         
         # For mutant first, find the parent's deme and then its index inside the deme
-        left_parent_prob = m / 2 * np.take(parent_array_extended, deme_arr)
-        mid_parent_prob = (1 - m) * np.take(parent_array_extended, deme_arr + 1)
-        right_parent_prob = m / 2 * np.take(parent_array_extended, deme_arr + 2)
-        total_prob = (left_parent_prob + mid_parent_prob + right_parent_prob)
+        left_parent_prob_mut = m / 2 * np.take(rho_e_parent_extended, deme_arr)
+        mid_parent_prob_mut = (1 - m) * np.take(rho_e_parent_extended, deme_arr + 1)
+        right_parent_prob_mut = m / 2 * np.take(rho_e_parent_extended, deme_arr + 2)
+        total_prob_mut = (left_parent_prob_mut + mid_parent_prob_mut + right_parent_prob_mut)
 
         # Set the cumulative probability
-        mid_parent_prob_cumulative = safe_divide(left_parent_prob + mid_parent_prob,total_prob,val = 1)
-        left_parent_prob_cumulative = safe_divide(left_parent_prob, total_prob)
+        mid_parent_prob_mut_cumulative = safe_divide(left_parent_prob_mut + mid_parent_prob_mut,
+        total_prob_mut, val = 1)
+        left_parent_prob_mut_cumulative = safe_divide(left_parent_prob_mut, total_prob_mut)
 
 
         left_parent_idxs_mut = np.where(np.logical_and(
-            which_parent_rand < left_parent_prob_cumulative,
+            which_parent_rand < left_parent_prob_mut_cumulative,
             mut_types_next == 1))[0]
         deme_arr_next[left_parent_idxs_mut] = (deme_arr[left_parent_idxs_mut] 
                                                - 1).astype(np.int64)
 
         mid_parent_idxs_mut = np.where(np.logical_and.reduce((
-            which_parent_rand > left_parent_prob_cumulative,
-            which_parent_rand < mid_parent_prob_cumulative,
+            which_parent_rand > left_parent_prob_mut_cumulative,
+            which_parent_rand < mid_parent_prob_mut_cumulative,
             mut_types_next == 1)))[0]
         deme_arr_next[mid_parent_idxs_mut] = (deme_arr[mid_parent_idxs_mut]).astype(np.int64)
 
 
         right_parent_idxs_mut = np.where(np.logical_and(
-            which_parent_rand > mid_parent_prob_cumulative,
+            which_parent_rand > mid_parent_prob_mut_cumulative,
             mut_types_next == 1))[0]
         deme_arr_next[right_parent_idxs_mut] = (deme_arr[right_parent_idxs_mut]
                                                 + 1).astype(np.int64)
@@ -257,9 +304,59 @@ def track_individual(parent_array, choice_rand, which_parent_rand, mutation_val,
         deme_arr_next[right_edge_idxs_mut] = (np.ones_like(right_edge_idxs_mut) *
                                       (L - 1)).astype(np.int64)
 
-        given_idxs = np.concatenate((left_parent_idxs_mut, 
+        mut_idxs = np.concatenate((left_parent_idxs_mut, 
                                mid_parent_idxs_mut, 
                                right_parent_idxs_mut))
+        ind_in_deme_arr_next[mut_idxs] = random.randint(0, np.take(rho_e_parent, 
+                        deme_arr_next[mut_idxs]))
+        
+        # Now repeat the same thing for the WT population
+        left_parent_prob_wt = m / 2 * np.take(rho_wt_parent_extended, deme_arr)
+        mid_parent_prob_wt = (1 - m) * np.take(rho_wt_parent_extended, deme_arr + 1)
+        right_parent_prob_wt = m / 2 * np.take(rho_wt_parent_extended, deme_arr + 2)
+        total_prob_wt = (left_parent_prob_wt + mid_parent_prob_wt + right_parent_prob_wt)
+
+        # Set the cumulative probability
+        mid_parent_prob_wt_cumulative = safe_divide(left_parent_prob_wt + mid_parent_prob_wt,
+        total_prob_wt, val = 1)
+        left_parent_prob_wt_cumulative = safe_divide(left_parent_prob_wt, total_prob_wt)
+
+
+        left_parent_idxs_mut = np.where(np.logical_and(
+            which_parent_rand < left_parent_prob_mut_cumulative,
+            mut_types_next == 1))[0]
+        deme_arr_next[left_parent_idxs_mut] = (deme_arr[left_parent_idxs_mut] 
+                                               - 1).astype(np.int64)
+
+        mid_parent_idxs_mut = np.where(np.logical_and.reduce((
+            which_parent_rand > left_parent_prob_mut_cumulative,
+            which_parent_rand < mid_parent_prob_mut_cumulative,
+            mut_types_next == 1)))[0]
+        deme_arr_next[mid_parent_idxs_mut] = (deme_arr[mid_parent_idxs_mut]).astype(np.int64)
+
+
+        right_parent_idxs_mut = np.where(np.logical_and(
+            which_parent_rand > mid_parent_prob_mut_cumulative,
+            mut_types_next == 1))[0]
+        deme_arr_next[right_parent_idxs_mut] = (deme_arr[right_parent_idxs_mut]
+                                                + 1).astype(np.int64)
+
+        left_edge_idxs_mut = np.where(np.logical_and(deme_arr_next < 0, 
+                                                 mut_types_next == 1))[0]
+        deme_arr_next[left_edge_idxs_mut] = (np.zeros_like(left_edge_idxs_mut)
+                                             ).astype(np.int64)
+
+        right_edge_idxs_mut = np.where(np.logical_and(deme_arr_next > L - 1, 
+                                                  mut_types_next == 1))[0]
+        deme_arr_next[right_edge_idxs_mut] = (np.ones_like(right_edge_idxs_mut) *
+                                      (L - 1)).astype(np.int64)
+
+        mut_idxs = np.concatenate((left_parent_idxs_mut, 
+                               mid_parent_idxs_mut, 
+                               right_parent_idxs_mut))
+        ind_in_deme_arr_next[mut_idxs] = random.randint(0, np.take(rho_e_parent, 
+                        deme_arr_next[mut_idxs]))
+
 
         return given_idxs, deme_arr_next, mut_types_next
 

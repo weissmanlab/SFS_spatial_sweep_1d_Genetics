@@ -97,7 +97,7 @@ def runner(idx):
         hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
         SFS += hist
 
-    '''Going back in time WHILE the wave is fixing, all the way back to the time when mutation is first established'''
+    '''Going back in time during the sweep, all the way back to the time when mutation is first seeded'''
     line_num = -1
     
     while (len(individuals) > 1) and (line_num > -len(lines)):  ##The maximum we can go backward in time is till T2
