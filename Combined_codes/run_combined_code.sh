@@ -12,22 +12,16 @@
 #SBATCH -e err_file4.txt
 
 ##Read this from parameters file and change N_forw by hand
-#Nforw = 1
-#L = 50
-#N = 50
-#s = 0.05
-#m = 0.25
-#l0 = 25
-#nbase = 10
-#n_SFS = 10
-#T_after_fix = 3
 
 
 #gcc -std=c99 Sweep_in-2D_version-m.c -o plain_sweep -lgsl -lgslcblas -lm -g
+
 ##Usage is L N s m T_final l0 Nforw 
 #./plain_sweep 500 500 0.05 0.25 10000 250 1
+
 ##Usage is L N s m l0 n_base N_SFS T_after_fix Nforw dimension
 python backwards_combined.py 500 500 0.05 0.250 250 500000 10 7300 4 2
+
 #python Plot_SFS.py
 
 
