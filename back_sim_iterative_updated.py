@@ -49,7 +49,7 @@ endIndx = int(sys.argv[12])
 mutationSite = int(sys.argv[13])
 
 step = 1
-r_per_base = 0.0000001
+r_per_base = 1e-8
 
 fname = 'L={}_N={}_s={:.6f}_m={:.6f}_tfinal={}_{}.txt'.format(L, 
            N, s, m, tfinal, n_forward)
@@ -407,29 +407,39 @@ if __name__ == '__main__':
     while startIndx < endIndx:
         ##SIMULATE IMPLICITLY
         if abs(mutationSite - startIndx) * r_per_base >= 10 * s and implicit_calculated == False:
-            perBaseMutation = 10 * r_per_base
+
+            print("here")
+            perBaseMutation = r_per_base * 10
 
             mutations = {}
 
             validLoci = []
 
-            for x in range(1, endIndx):
-                if abs(mutationSite - x) * r_per_base >= 10 * s:
-                    validLoci.append(x)
+            #split abs value calculation for efficiency
+            lowerBoundLoci = int(mutationSite - ((10 * s) / r_per_base))
+            upperBoundLoci = int(mutationSite + ((10 * s) / r_per_base))
+
+            for x in range(1, lowerBoundLoci + 1):
+                validLoci.append(x)
+
+            for x in range(upperBoundLoci, endIndx + 1):
+                validLoci.append(x)
                     
-            totalMutationRate = len(validLoci) * perBaseMutation
-            theta = 2 * N * totalMutationRate
+            theta = perBaseMutation * 2 * N
             
             for i in range(1, nbase):
                 expectedValue = theta/i
 
-                mutations[i] = np.random.binomial(expectedValue, expectedValue/len(validLoci)) #[Key, value] where key is expected number of loci and value is number of mutations
+                mutations[i] = np.random.binomial(len(validLoci), expectedValue) #[Key, value] where key is expected number of loci and value is number of mutations
 
             for mutationCount in mutations:
-                for _ in range(int(mutations[mutationCount])):
+                for _ in range(mutations[mutationCount]):
                     target = np.random.randint(0, len(validLoci) - 1)
                     writeOutput(validLoci[target], mutationCount)
                     validLoci.remove(validLoci[target])
+
+
+            sys.exit()
 
             newStart = 1
 
