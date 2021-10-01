@@ -24,19 +24,34 @@ import time
 
 start = time.time()
 
-L = int(sys.argv[1]) # number of demes
-rho = int(sys.argv[2]) # deme capacity
-s = format(float(sys.argv[3]),'0.3f') # selection coef
-m = float(sys.argv[4]) # migration rate
-m_file = format(m,'0.2f')
-l0 = int(sys.argv[5])##l0 for the file name string
-nbase = int(sys.argv[6]) # sample size
-N_SFS = int(sys.argv[7]) # number of coalescent simulation we run for ensemble average.
-T_after_fix = int(sys.argv[8]) # number of generations between fixation and sampling
-Nforw = int(sys.argv[9]) ##Forwrad simulation Number
-dimension = int(sys.argv[10]) ##To check if to run in 1-D or 2-D 
-extra_gen_cutoff = sys.argv[11] if len(sys.argv) >= 12 else int(L ** 2 / m / rho)
-r = float(sys.argv[12]) # recombination rate
+L = 100
+rho = 500
+s = 0.050
+m = 0.25
+l0 = 50
+Nforw = 1
+nbase = 30000
+N_SFS = 5
+T_after_fix = 0
+dimension = 2
+extra_gen_cutoff = int(L ** 2 / m / rho / 100)
+r = 0
+
+
+
+# L = int(sys.argv[1]) # number of demes
+# rho = int(sys.argv[2]) # deme capacity
+# s = format(float(sys.argv[3]),'0.3f') # selection coef
+# m = float(sys.argv[4]) # migration rate
+# m_file = format(m,'0.2f')
+# l0 = int(sys.argv[5])##l0 for the file name string
+# nbase = int(sys.argv[6]) # sample size
+# N_SFS = int(sys.argv[7]) # number of coalescent simulation we run for ensemble average.
+# T_after_fix = int(sys.argv[8]) # number of generations between fixation and sampling
+# Nforw = int(sys.argv[9]) ##Forwrad simulation Number
+# dimension = int(sys.argv[10]) ##To check if to run in 1-D or 2-D 
+# extra_gen_cutoff = sys.argv[11] if len(sys.argv) >= 12 else int(L ** 2 / m / rho)
+# r = float(sys.argv[12]) # recombination rate
 
 ## python backwards_combined.py L N s m l0 n_base N_SFS T_after_fix Nforw dimensions
 ## python backwards_combined.py 500 20000 0.05 0.250 1 10000 4 3000 1 1
@@ -51,7 +66,8 @@ if (dimension == 1):
 elif(dimension == 2):
     print('2-D')
     ##Read input file and flatten lines[i] into 1-D array here for use within existing framework
-    fname = 'L='+str(L)+'_N='+str(rho)+'_s='+str(s)+'_m='+str(m_file)+'_l0='+str(l0)+'_Nforw='+str(Nforw)+'.txt'
+    fname = 'D:\SFS_spatial_sweep\Combined_codes\L={}_N={}_s={:.3f}_m={:.2f}_l0={}_Nforw={}.txt'.format(L, rho, s, m, l0, Nforw)
+    # fname = 'L='+str(L)+'_N='+str(rho)+'_s='+str(s)+'_m='+str(m_file)+'_l0='+str(l0)+'_Nforw='+str(Nforw)+'.txt'
     #print(fname)
     lines = np.loadtxt(fname, dtype = np.int64)
     #print(len(lines))
@@ -199,15 +215,18 @@ if __name__ == '__main__':
                 int(rho), float(s), float(m), int(nbase), int(T_after_fix), int(N_SFS), int(Nforw)), SFS)
 
 
-    test = np.arange(1,nbase)
+    test = np.arange(1, nbase)
+    n = len(SFS)
+    f = np.arange(1, n + 1) / n
     '''Plotting SFS to see in log scale'''
-    plt.ylabel('frequency')
-    plt.plot(SFS)
+    plt.xlabel('frequency')
+    plt.ylabel('Number of alleles')
+    plt.plot(f, SFS)
     plt.yscale('log')
     plt.xscale('log')
     #plt.savefig('Test.jpeg')
     end = time.time()
     print(start-end) 
-    print(psutil.virtual_memory())
-    #plt.show()
+    #print(psutil.virtual_memory())
+    plt.show()
     
