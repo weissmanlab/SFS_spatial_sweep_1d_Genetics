@@ -24,34 +24,34 @@ import time
 
 start = time.time()
 
-L = 500
-rho = 20000
-s = 0.050
-m = 0.25
-l0 = 50
-Nforw = 1
-nbase = 10000
-N_SFS = 5
-T_after_fix = 0
-dimension = 1
-extra_gen_cutoff = int(L ** 2 / m / rho / 100)
-r = 10 ** (-7)
+# L = 500
+# rho = 20000
+# s = 0.050
+# m = 0.25
+# l0 = 50
+# Nforw = 1
+# nbase = 10000
+# N_SFS = 5
+# T_after_fix = 0
+# dimension = 1
+# extra_gen_cutoff = int(L ** 2 / m / rho / 100)
+# r = 10 ** (-7)
 
 
 
-# L = int(sys.argv[1]) # number of demes
-# rho = int(sys.argv[2]) # deme capacity
-# s = format(float(sys.argv[3]),'0.3f') # selection coef
-# m = float(sys.argv[4]) # migration rate
-# m_file = format(m,'0.2f')
-# l0 = int(sys.argv[5])##l0 for the file name string
-# nbase = int(sys.argv[6]) # sample size
-# N_SFS = int(sys.argv[7]) # number of coalescent simulation we run for ensemble average.
-# T_after_fix = int(sys.argv[8]) # number of generations between fixation and sampling
-# Nforw = int(sys.argv[9]) ##Forwrad simulation Number
-# dimension = int(sys.argv[10]) ##To check if to run in 1-D or 2-D 
-# extra_gen_cutoff = sys.argv[11] if len(sys.argv) >= 12 else int(L ** 2 / m / rho)
-# r = float(sys.argv[12]) # recombination rate
+L = int(sys.argv[1]) # number of demes
+rho = int(sys.argv[2]) # deme capacity
+s = float(sys.argv[3]) # selection coef
+m = float(sys.argv[4]) # migration rate
+l0 = int(sys.argv[5])## location of the origin of the sweep
+nbase = int(sys.argv[6]) # sample size
+N_SFS = int(sys.argv[7]) # number of coalescent simulation we run for ensemble average.
+T_after_fix = int(sys.argv[8]) # number of generations between fixation and sampling
+Nforw = int(sys.argv[9]) ##Forwrad simulation Number
+dimension = int(sys.argv[10]) ##To check if to run in 1-D or 2-D 
+r = float(sys.argv[11]) # recombination rate
+
+extra_gen_cutoff = sys.argv[12] if len(sys.argv) >= 13 else int(L ** 2 / m / rho)
 
 ## python backwards_combined.py L N s m l0 n_base N_SFS T_after_fix Nforw dimensions
 ## python backwards_combined.py 500 20000 0.05 0.250 1 10000 4 3000 1 1
@@ -59,15 +59,14 @@ r = 10 ** (-7)
 
 if (dimension == 1):
     print ('1_D')
-    fname = 'D:\SFS_spatial_sweep\Combined_codes\L={}_N={}_s={:.6f}_m={:.6f}_tfinal=1000000_{}.txt'.format(L, rho, s, m, Nforw)
+    fname = 'L={}_N={}_s={:.6f}_m={:.6f}_tfinal=1000000_{}.txt'.format(L, rho, s, m, Nforw)
     print(fname)
     lines = np.loadtxt(fname, dtype = np.int64)
 
 elif(dimension == 2):
     print('2-D')
     ##Read input file and flatten lines[i] into 1-D array here for use within existing framework
-    fname = 'D:\SFS_spatial_sweep\Combined_codes\L={}_N={}_s={:.3f}_m={:.2f}_l0={}_Nforw={}.txt'.format(L, rho, s, m, l0, Nforw)
-    # fname = 'L='+str(L)+'_N='+str(rho)+'_s='+str(s)+'_m='+str(m_file)+'_l0='+str(l0)+'_Nforw='+str(Nforw)+'.txt'
+    fname = 'L={}_N={}_s={:.3f}_m={:.2f}_l0={}_Nforw={}.txt'.format(L, rho, s, m, l0, Nforw)
     #print(fname)
     lines = np.loadtxt(fname, dtype = np.int64)
     #print(len(lines))
@@ -205,28 +204,27 @@ def runner(idx):
 
 
 if __name__ == '__main__':
-    p = Pool(1)    ##Nunmber of cores you want to spawn jobs on
+    p = Pool(20)    ##Nunmber of cores you want to spawn jobs on
     ret = p.map(runner, range(N_SFS))  ###Number of simulations you want to average over    
     SFS_items = [r[0] for r in ret]
     H_items = [r[1] for r in ret]
     SFS = np.sum(SFS_items, axis=0)
     SFS /= N_SFS
-    np.savetxt('expected_SFS_L={}_N={}_s={:.3f}_m={:.2f}_r={:.1e}_nsample={}_tfix={}_sample_uniform_navg={}_Nforw={}.txt'.format(L,
+    np.savetxt('expected_SFS_L={}_N={}_s={:.3f}_m={:.2f}_r={:.2e}_nsample={}_t_after_fix={}_Nback={}_Nforw={}.txt'.format(L,
                 rho, s, m, r, nbase, T_after_fix, N_SFS, Nforw), SFS)
 
 
-    test = np.arange(1, nbase)
-    n = len(SFS)
-    f = np.arange(1, n + 1) / n
-    '''Plotting SFS to see in log scale'''
-    plt.xlabel('frequency')
-    plt.ylabel('Number of alleles')
-    plt.plot(f, SFS)
-    plt.yscale('log')
-    plt.xscale('log')
-    #plt.savefig('Test.jpeg')
+    # n = len(SFS)
+    # f = np.arange(1, n + 1) / n
+    # '''Plotting SFS to see in log scale'''
+    # plt.xlabel('frequency')
+    # plt.ylabel('Number of alleles')
+    # plt.plot(f, SFS)
+    # plt.yscale('log')
+    # plt.xscale('log')
+    # #plt.savefig('Test.jpeg')
     end = time.time()
     print(start-end) 
-    #print(psutil.virtual_memory())
-    plt.show()
+    # #print(psutil.virtual_memory())
+    # plt.show()
     
