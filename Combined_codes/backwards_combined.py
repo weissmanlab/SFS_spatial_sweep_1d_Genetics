@@ -35,7 +35,7 @@ N_SFS = 5
 T_after_fix = 0
 dimension = 1
 extra_gen_cutoff = int(L ** 2 / m / rho / 100)
-r = 10 ** (-6)
+r = 10 ** (-7)
 
 
 
@@ -211,8 +211,8 @@ if __name__ == '__main__':
     H_items = [r[1] for r in ret]
     SFS = np.sum(SFS_items, axis=0)
     SFS /= N_SFS
-    np.savetxt('expected_SFS_L={}_N={}_s={:.3f}_m={:.2f}_nsample={}_tfix={}_sample_uniform_navg={}_Nforw={}.txt'.format(int(L),
-                int(rho), float(s), float(m), int(nbase), int(T_after_fix), int(N_SFS), int(Nforw)), SFS)
+    np.savetxt('expected_SFS_L={}_N={}_s={:.3f}_m={:.2f}_r={:.1e}_nsample={}_tfix={}_sample_uniform_navg={}_Nforw={}.txt'.format(L,
+                rho, s, m, r, nbase, T_after_fix, N_SFS, Nforw), SFS)
 
 
     test = np.arange(1, nbase)
