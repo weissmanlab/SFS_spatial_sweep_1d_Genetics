@@ -24,18 +24,18 @@ import time
 
 start = time.time()
 
-L = 100
-rho = 500
+L = 500
+rho = 20000
 s = 0.050
 m = 0.25
 l0 = 50
 Nforw = 1
-nbase = 30000
+nbase = 10000
 N_SFS = 5
 T_after_fix = 0
-dimension = 2
+dimension = 1
 extra_gen_cutoff = int(L ** 2 / m / rho / 100)
-r = 0
+r = 10 ** (-6)
 
 
 
@@ -59,7 +59,7 @@ r = 0
 
 if (dimension == 1):
     print ('1_D')
-    fname = 'L={}_N={}_s={:.6f}_m={:.6f}_tfinal=1000000_{}.txt'.format(L, rho, s, m, Nforw)
+    fname = 'D:\SFS_spatial_sweep\Combined_codes\L={}_N={}_s={:.6f}_m={:.6f}_tfinal=1000000_{}.txt'.format(L, rho, s, m, Nforw)
     print(fname)
     lines = np.loadtxt(fname, dtype = np.int64)
 
