@@ -8,5 +8,5 @@
 #SBATCH -e L=500_rho=20000_s=5.00e-02_m=2.50e-01_r=1.00e-07_nsample=1000_nback=1000_tifx=0_0.err  # File to which STDERR will be written, %j inserts jobid
 #SBATCH  --account=desai_lab
 
-module load python/3.7.7-fasrc01
+module load Anaconda3/2020.11
 python backwards_combined.py 500 20000 0.05000000 0.25000000 0 1000 1000 0 0 1 0.00000010   # last digit is for copy number of the foward time sim
