@@ -145,7 +145,13 @@ def runner(idx):
     '''
     
 
-    left_individuals = len(individuals)  ##Individuas left to still coalesce in time before the mutation arose
+    left_individuals = len(individuals)  ##Individuals left to still coalesce in time before the mutation arose
+    # Make sure that all individuals are WT (mutation type = 0)
+    mut_types, deme_arr, ind_in_deme_arr = individuals.T
+    mut_types = np.zeros_like(mut_types)
+    mut_types = (mut_types).astype(np.int64)
+    individuals = np.vstack((mut_types, deme_arr, ind_in_deme_arr)).T
+
     branch_len = 0 # number of generations until first merging event
     extra_gen = 0 # extra run time before stopping the coalescent simulation.
 
