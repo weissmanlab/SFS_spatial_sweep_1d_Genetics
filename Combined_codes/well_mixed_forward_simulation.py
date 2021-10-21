@@ -25,7 +25,14 @@ def forward_sim():
         n_selected_series.append(n_selected)
     return n_selected_series
 
-for idx in range(n_forward):
-    data = forward_sim()
+idx = 0
+while idx < n_forward:
+    
+    n_selected_final = 0
+    while n_selected_final < N:
+        n_selected_series = forward_sim()
+        n_selected_final = n_selected_series[-1]
+    # Forward simulation counts only if the mutation fixes.
     np.savetxt('well_mixed_forward_N={}_s={:.2f}_{}.txt'.format(
-                N, s, idx), data) 
+                N, s, idx), n_selected_series)
+    idx += 1
