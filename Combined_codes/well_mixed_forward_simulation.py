@@ -11,7 +11,7 @@ forward simulation
 '''
 import numpy as np
 
-N = 10 ** 7
+N = 10 ** 6
 s = 0.05
 n_forward = 100
 
