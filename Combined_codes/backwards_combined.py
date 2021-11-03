@@ -188,7 +188,7 @@ def runner(idx):
     
     while left_individuals > 1:
         #print('approximation')
-        T2 = 1 + random.exponential(2 * rho * L / ((left_individuals - 1) * left_individuals / 2)) ###Drawing the T2 from geometric distribution
+        T2 = random.exponential(rho * L / ((left_individuals - 1) * left_individuals / 2)) ###Drawing the T2 from geometric distribution
         hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
         SFS += hist * T2 ##That many branches will exist
         # Now choose two random branches that will coalesce in T2 generations. 
