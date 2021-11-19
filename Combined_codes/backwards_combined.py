@@ -104,7 +104,7 @@ def runner(idx):
     '''Going backwards in time for user given generations after sweep has fixed'''
     #Since the population doesnt change once sweep has fixed, we dont need to change the input data for this
     
-    while t_after_fix < T_after_fix:
+    while (t_after_fix < T_after_fix) and (len(individuals) > 1):
         #print ('sampling after fixation')
         t_after_fix += 1
         individuals_post_recombination = recombination(rho_e, rho_e, individuals, rho, r)
