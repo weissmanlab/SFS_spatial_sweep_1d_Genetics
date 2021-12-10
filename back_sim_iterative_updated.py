@@ -392,9 +392,9 @@ def updateStep(position):
 
     if relDistance < 10000:
         return 1000
-    elif relDistance <= 10000:
-        return 10000
     elif relDistance <= 100000:
+        return 10000
+    elif relDistance <= 1000000:
         return 100000
     else:
         return 1000000
