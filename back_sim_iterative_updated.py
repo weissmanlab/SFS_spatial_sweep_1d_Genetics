@@ -387,28 +387,27 @@ def recalcRecombination():
     return newRecomb
 
 #updates the increment between loci
-def updateStep():
-    position = startIndx
+def updateStep(position):
     relDistance = abs(mutationSite - position)
 
     if relDistance < 10000:
         return 1000
-    elif relDistance >= 10000:
+    elif relDistance <= 10000:
         return 10000
     elif relDistance <= 100000:
         return 100000
     else:
         return 1000000
-        
-    
+
+#abs(mutationSite - startIndx) * r_per_base >= 10 * s
 if __name__ == '__main__':
-
-    implicit_calculated = False
-    while startIndx < endIndx:
+    lo = int(mutationSite - ((10 * s) / r_per_base))
+    hi = int(mutationSite + ((10 * s) / r_per_base))
+    implicit_calculated = True
+    while lo < hi:
         ##SIMULATE IMPLICITLY
-        if abs(mutationSite - startIndx) * r_per_base >= 10 * s and implicit_calculated == False:
-
-            print("here")
+        if implicit_calculated == False:
+            
             perBaseMutation = r_per_base * 10
 
             mutations = {}
@@ -437,23 +436,18 @@ if __name__ == '__main__':
                     target = np.random.randint(0, len(validLoci) - 1)
                     writeOutput(validLoci[target], mutationCount)
                     validLoci.remove(validLoci[target])
-
-
-            sys.exit()
-
-            newStart = 1
-
-            while abs(mutationSite - newStart) * r_per_base >= 10 * s:
-                newStart += 1
-
-            startIndx = newStart
-
+                    
             implicit_calculated = True
+            lo = lowerBoundLoci #store for explicit simulations
+            hi = upperBoundLoci
                 
         ##SIMULATE EXPLICITLY
         else:
-            if abs(mutationSite - startIndx) * r_per_base >= 10 * s:
-                break
+            print(lo)
+            step = updateStep(lo)
+            print(step)
+            lo += step
+            print(lo)
             
             p = Pool(25)
         
@@ -468,12 +462,8 @@ if __name__ == '__main__':
             sizeAsList = rand.choices(sizes, weights)
             size = sizeAsList[0]
 
-            targetLoci = np.random.randint(startIndx - step + 1, startIndx)
+            targetLoci = np.random.randint(lo - step + 1, lo)
 
             writeOutput(targetLoci, size)
-
-            step = updateStep()
-
-            startIndx += step
 
             r = recalcRecombination()
