@@ -6,7 +6,8 @@ Not using np.repeat to update the leaf counts
 """
 
 import numpy as np
-import random as rand
+import random
+from os import path
 #from multiprocessing import Pool
 #import sys
 
@@ -26,8 +27,8 @@ N_back_sim_per_forward = 5
 nsample = 100
 T_after_fix = 0
 mutationSite = 50000000
-startIndex = 1
-endIndex = 100000000
+startIndx = 1
+endIndx = 100000000
 step = 0
 
 r_per_base = 1e-8
@@ -46,11 +47,11 @@ def writeOutput(position, mutationCount, outputFileName):
         output = open(outputFileName, "w")
         output.write("position\t" + "x\t" + "n\t" + "folded\n")
     output = open(outputFileName, "a")
-    output.write(str(position) + "\t" + str(mutationCount) + "\t" + str(nbase) + "\t" + "0\n")
+    output.write(str(position) + "\t" + str(mutationCount) + "\t" + str(nsample) + "\t" + "0\n")
     output.close()
 
-def recalcRecombination():
-    relDistance = abs(mutationSite - startIndx)
+def recalcRecombination(position):
+    relDistance = abs(mutationSite - position)
     genDistance = float(relDistance * r_per_base)
     newRecomb = 1 - (np.exp(-2 * genDistance)) 
     newRecomb *= 0.5
@@ -185,13 +186,17 @@ def calculateSFS():
             SFS_avg += backward_sim(n_forward_sim) / N_sim
     return SFS_avg
 
-r = recalcRecombination()
+
 mutationRate = r_per_base * 10
-lo = int(mutationSite - ((10 * s) / r_per_base))
-hi = int(mutationSite + ((10 * s) / r_per_base))
-while lo < hi:
-    step = updateStep(lo)
-    lo += step
+left = mutationSite
+right = mutationSite
+hi = endIndx
+r = recalcRecombination(right)
+
+while right < hi:
+    step = updateStep(right)
+    right += step
+    left -= step
 
     SFS = calculateSFS()
     SFS *= mutationRate
@@ -199,17 +204,23 @@ while lo < hi:
     SFS_List = SFS.tolist()
 
     zeroProbability = 1 - sum(SFS_List)
+    print(sum(SFS_List))
+    print(zeroProbability)
     SFS_List.append(zeroProbability)
 
     mutations = []
     for x in range(1, nsample + 1):
         mutations.append(x)
     mutations.append(0)
-    resultList = rand.choices(mutations, SFS_List)
-    result = resultList[0]
+    
+    resultListLeft = random.choices(mutations, SFS_List, k = step)
+    resultListRight = random.choices(mutations, SFS_List, k = step)
 
-    targetLoci = np.random.randint(lo - step + 1, lo)
+    targetLociLeft = random.sample(range(left, left + step), step)
+    targetLociRight = random.sample(range(right - step, right), step)
 
-    writeOutput(targetLoci, result, "output_well_mixed.txt")
+    for i in range(step):
+        writeOutput(targetLociLeft[i], resultListLeft[i], "output_well_mixed.txt")
+        writeOutput(targetLociRight[i], resultListRight[i], "output_well_mixed.txt")
 
-    r = recalcRecombination()
+    r = recalcRecombination(right)
