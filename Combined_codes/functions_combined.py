@@ -108,11 +108,16 @@ def migration(rho_e_parent, individuals, rho , m, L, dimension):
         total_prob_mut = (left_parent_prob_mut + mid_parent_prob_mut + right_parent_prob_mut)
 
         # Set the cumulative probability
-        mid_parent_prob_mut_cumulative = safe_divide(left_parent_prob_mut + mid_parent_prob_mut,
-        total_prob_mut, val = 1)
-        left_parent_prob_mut_cumulative = safe_divide(left_parent_prob_mut, 
-                                                      total_prob_mut, 
-                                                      val = 1)
+#        mid_parent_prob_mut_cumulative = safe_divide(left_parent_prob_mut + mid_parent_prob_mut,
+#        total_prob_mut, val = 1)
+#        left_parent_prob_mut_cumulative = safe_divide(left_parent_prob_mut, 
+#                                                      total_prob_mut, 
+#                                                      val = 1)
+        mid_parent_prob_mut_cumulative = np.divide(left_parent_prob_mut + mid_parent_prob_mut,
+        total_prob_mut)
+        left_parent_prob_mut_cumulative = np.divide(left_parent_prob_mut, 
+                                                      total_prob_mut)
+        
 
 
         left_parent_idxs_mut = np.where(np.logical_and(
