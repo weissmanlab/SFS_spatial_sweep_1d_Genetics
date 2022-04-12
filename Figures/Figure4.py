@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+import matplotlib.axes as ax
 def moving_average(a, n = 3, start_smooth = 100):
     a_start = a[:start_smooth]
     a_end = a[start_smooth:]
@@ -74,7 +74,6 @@ flat, = plt.loglog(f_short, np.ones(len(f_short)) * L / v, linewidth = 5,
 xvals = [5 * 10 ** (-5)]
 labelLines(plt.gca().get_lines(), xvals = xvals, fontsize = 75)
 
-legend_list = []
 for tind in range(len(tfixlist)):
     tfix = tfixlist[tind]
     # Find v from lines
@@ -90,18 +89,17 @@ for tind in range(len(tfixlist)):
     SFS /= n_forward
 
 
-    SFS_plot = plt.loglog(f_short, 
+    plt.loglog(f_short, 
                  moving_average(SFS, navg, start_smooth), 
                  linewidth = 5, 
                  color = viridis_cmap(tind * 0.4), 
                  label = '$t =${:.2e}'.format(tfix))
-    legend_list.append(SFS_plot)
     
     plt.vlines((tfix + L / v) / (N * L), 10 ** 3, 10 ** 11, linestyle = 'dotted',
                linewidth = 5, color = viridis_cmap(tind * 0.4))
-#    plt.text(xpositions[tind], 200, 
-#             r'$t = $' + '{:.0e}'.format(tfix), 
-#             color = viridis_cmap(tind * 0.4), fontsize = 50)    
+    plt.text(xpositions[tind], 200, 
+             r'$t = $' + '{:.0e}'.format(tfix), 
+             color = viridis_cmap(tind * 0.4), fontsize = 50)    
     popt, pcov = curve_fit(power_law_fit, f[fit_range_ind], SFS[fit_range_ind])
     fitlist.append(popt[0])
 
@@ -124,8 +122,7 @@ for tind in range(len(tfixlist)):
 
 #plt.title('L = {}, '.format(L)  +
 #          r'$\rho =$' + '{}, s = {:.2f}, m = {:.2f}, r = {:.2f}, sample uniformly everywhere, 100 forward sims'.format(N, s, m, r))
-handles, labels = plt.get_legend_handles(legend_list)
-plt.legend(legend_list, loc = 'upper right')
+#plt.legend(loc = 'upper right')
 
 
 #plt.figure(figsize = (8, 6))
