@@ -96,7 +96,7 @@ def migration(rho_e_parent, individuals, rho , m, L, dimension):
     which_parent_rand = random.random(len_inds) # to choose btw left/mid/right/top/bottom
 
     
-    if(dimension == 1):  ##No recombination right now
+    if(dimension == 1):  
 
         rho_e_parent_extended = np.concatenate(([rho_e_parent[0]], rho_e_parent, [rho_e_parent[-1]]))
         rho_wt_parent_extended = np.concatenate(([rho_wt_parent[0]], rho_wt_parent, [rho_wt_parent[-1]]))
