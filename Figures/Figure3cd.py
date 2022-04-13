@@ -55,7 +55,7 @@ for mind in range(len(mlist)):
     # Find v from lines
 
     freq_file = open(
-       'forward simulation/L={}_N={}_s={:.6f}_m={:.6f}_tfinal={}_0.txt'.format(L, N, s, m, tfinal))
+       'forward_simulation_data/L={}_N={}_s={:.6f}_m={:.6f}_tfinal={}_0.txt'.format(L, N, s, m, tfinal))
     lines = np.loadtxt(freq_file, dtype=np.int64)
     tf_real = len(lines)
     v_list = []
@@ -71,7 +71,7 @@ for mind in range(len(mlist)):
 
     for i in range(n_forward):
         SFS += n * np.loadtxt(
-        'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
+        'backward_simulation_data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
                  N, s, m, r, tfinal, n, tfix, nSFS, i))
 
     
@@ -113,7 +113,6 @@ for mind in range(len(mlist)):
 
 plt.legend(fontsize = 'small', loc = 'upper right')
 
-
 plt.figure(figsize = (24, 18))
 plt.plot(mlist, fitlist, 'o', ms = 60, label = 'simulation')
 plt.plot(mlist, 1 / 2 / s * np.ones(len(mlist)), label = '$k = U_n / 2 s$', 
@@ -122,4 +121,4 @@ plt.xlabel('$m$')
 plt.ylabel('$k$')
 plt.ylim((5, 15))
 plt.legend()
-plt.title('fitting SFS to ' + r'$f = k \ln(Nsf) / f^2$')
+plt.title('fitting SFS to ' + '$P(f) = k \ln(Nsf) / f^2$')
