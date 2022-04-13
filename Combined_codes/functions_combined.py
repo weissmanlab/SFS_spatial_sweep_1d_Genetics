@@ -23,7 +23,7 @@ def safe_divide(a, b, val = 0):
     return np.divide(a, b, out = np.full_like(a, val), where = b != 0)
     
 
-def recombination(rho_e, rho_e_parent, individuals, rho, r):
+def recombination(rho_e, individuals, rho, r):
     '''
     Let individuals recombine with others in the same deme. This will change the mutation types of the individuals.
     Output - individuals with the updated genotypes after recombination events.

@@ -122,9 +122,12 @@ def runner(idx):
 
         line_num -= 1
         rho_e_parent = (lines[line_num]).astype(np.int64) ##Getting the parent generation from each time step of our forward simulation
-        individuals_post_recombination = recombination(rho_e, rho_e_parent, individuals, rho, r)
-        individuals_post_migration = migration(rho_e_parent, individuals_post_recombination, rho, m, L, dimension)
-        individuals, leaf_counts = coalescent(individuals_post_migration, leaf_counts)
+        individuals_post_migration = migration(rho_e_parent, individuals, rho, m, L, dimension)
+        individuals_post_recombination = recombination(rho_e_parent, individuals_post_migration, rho, r)
+        individuals, leaf_counts = coalescent(individuals_post_recombination, leaf_counts)
+        # individuals_post_recombination = recombination(rho_e, individuals, rho, r)
+        # individuals_post_migration = migration(rho_e_parent, individuals_post_recombination, rho, m, L, dimension)
+        # individuals, leaf_counts = coalescent(individuals_post_migration, leaf_counts)
         hist, bin_edges = np.histogram(leaf_counts,bins = np.arange(1, n + 2))
 
         SFS += hist
