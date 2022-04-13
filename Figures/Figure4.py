@@ -65,7 +65,7 @@ for t in np.arange(int(tf_real / 4), int(tf_real * 3 / 4)):
 
 v = np.average(v_list)
 #xpositions = [6 * 10 ** (-5), 10 ** (-3), 10 ** (-2)]
-xpositions = [6 * 10 ** (-5), 10 ** (-1), 3 * 10 ** (-1)]
+xpositions = [6 * 10 ** (-5), 8 * 10 ** (-4), 10 ** (-2)]
 
 plt.text(5 * 10 ** -4, 200, r'$f = t / N + 1 / (\rho v)$', fontsize = 50)
 flat, = plt.loglog(f_short, np.ones(len(f_short)) * L / v, linewidth = 5, 
@@ -97,8 +97,8 @@ for tind in range(len(tfixlist)):
     
     plt.vlines((tfix + L / v) / (N * L), 10 ** 3, 10 ** 11, linestyle = 'dotted',
                linewidth = 5, color = viridis_cmap(tind * 0.4))
-    plt.text(xpositions[tind], 200, 
-             r'$t = $' + '{:.0e}'.format(tfix), 
+    plt.text(xpositions[tind], 5 * 10 ** 11, 
+             r'$t = $' + '{:.1e}'.format(tfix), 
              color = viridis_cmap(tind * 0.4), fontsize = 50)    
     popt, pcov = curve_fit(power_law_fit, f[fit_range_ind], SFS[fit_range_ind])
     fitlist.append(popt[0])

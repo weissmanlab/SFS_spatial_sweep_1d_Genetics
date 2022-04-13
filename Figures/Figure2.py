@@ -85,18 +85,18 @@ plt.vlines(1 / (N * v) + tfix / N / L, 10 ** (-2), 10 ** 15, linestyle = 'dotted
 vline = plt.axvline(1 / (N * v)  + tfix / N / L, 10 ** 3, 10 ** 11, linestyle = 'dotted',
            linewidth = 10)
 
-plt.text(10 ** (-5), 50, r'$\boldmath{f = 1 / \rho v + t / N}$', 
-         color = '#009e73', fontsize = 150, rotation = -90)
+plt.text(7 * 10 ** (-4), 10 ** 8, r'$\boldmath{f = 1 / \rho v + t / N}$', 
+         color = '#009e73', fontsize = 150, rotation = 90)
 
-plt.text(10 ** (-1), 10 ** 6, 'spatial', color = 'k', fontsize = 150)
+plt.text(10 ** (-1), 10 ** 5, 'spatial', color = 'k', fontsize = 100)
 plt.text(10 ** (-2), 10 ** 2, 'well-mixed', color = 'k', alpha = 0.5, 
-         fontsize = 150)
+         fontsize = 100)
 
 #plt.text(0.002, 3 * 10 ** 5, r'$\boldmath{U_n \ln( N s f) / (s f^2)}$'
 #        , color = '#0072b2', fontsize = 150, rotation = -25)
 #        
-plt.loglog(moving_average(f, navg * 40, start_smooth * 10 ), 
-             moving_average(SFS_well_mixed, navg * 40, start_smooth * 10), 
+plt.loglog(moving_average(f, navg * 40, start_smooth * 4) , 
+             moving_average(SFS_well_mixed, navg * 40, start_smooth * 4), 
              linewidth = 12, color = 'k', alpha = 0.4)
 
 plt.loglog(f_short, 
