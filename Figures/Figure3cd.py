@@ -112,6 +112,7 @@ for mind in range(len(mlist)):
 #plt.title('L = {}, '.format(L) + r'$\rho =$ {}, s = {:.2f}, r = {:.2f}, sample uniformly everywhere, 100 forward sims'.format(N, s, r))
 
 plt.legend(fontsize = 'small', loc = 'upper right')
+plt.savefig('Figure3c.pdf', format = 'pdf')
 
 plt.figure(figsize = (24, 18))
 plt.plot(mlist, fitlist, 'o', ms = 60, label = 'simulation')
@@ -122,3 +123,4 @@ plt.ylabel('$k$')
 plt.ylim((5, 15))
 plt.legend()
 plt.title('fitting SFS to ' + '$P(f) = k \ln(Nsf) / f^2$')
+plt.savefig('Figure3d.pdf', format = 'pdf')

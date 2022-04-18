@@ -76,27 +76,29 @@ for i in range(n_forward):
 
 SFS /= n_forward
 
-SFS_well_mixed = np.loadtxt('backward_simulation_data/expected_SFS_well_mixed_N=10000000_Tfix=10000_s=0.05_r=0.00e+00_nsample=100000_nsim=5.txt')
+SFS_well_mixed = np.loadtxt('backward_simulation_data/expected_SFS_well_mixed_N=10000000_Tfix=10000_s=0.05_r=0.00e+00_nsample=100000_nsim=1000.txt')
 #####################################
 
-plt.vlines(1 / (N * v) + tfix / N / L, 10 ** (-2), 10 ** 15, linestyle = 'dotted',
+plt.vlines(1 / (N * v), 10 ** (-2), 10 ** 15, linestyle = 'dotted',
            linewidth = 10, color = '#009e73')
 
-vline = plt.axvline(1 / (N * v)  + tfix / N / L, 10 ** 3, 10 ** 11, linestyle = 'dotted',
-           linewidth = 10)
+#vline = plt.axvline(tfix / N / L, 10 ** 3, 10 ** 11, linestyle = 'dotted',
+#           linewidth = 10)
 
-plt.text(7 * 10 ** (-4), 10 ** 8, r'$\boldmath{f = 1 / \rho v + t / N}$', 
-         color = '#009e73', fontsize = 150, rotation = 90)
+plt.text(5 * 10 ** (-4), 10 ** 8, r'$\boldmath{f = t / N}$', 
+         color = '#009e73', fontsize = 150, rotation = 90, 
+         backgroundcolor = 'w')
 
-plt.text(10 ** (-1), 10 ** 5, 'spatial', color = 'k', fontsize = 100)
+plt.text(10 ** (-1), 10 ** 5, 'spatial', color = 'k', 
+         fontsize = 150, backgroundcolor = 'w')
 plt.text(10 ** (-2), 10 ** 2, 'well-mixed', color = 'k', alpha = 0.5, 
-         fontsize = 100)
+         fontsize = 150, backgroundcolor = 'w')
 
 #plt.text(0.002, 3 * 10 ** 5, r'$\boldmath{U_n \ln( N s f) / (s f^2)}$'
 #        , color = '#0072b2', fontsize = 150, rotation = -25)
 #        
-plt.loglog(moving_average(f, navg * 40, start_smooth * 4) , 
-             moving_average(SFS_well_mixed, navg * 40, start_smooth * 4), 
+plt.loglog(moving_average(f, navg * 40, start_smooth * 10) , 
+             moving_average(SFS_well_mixed, navg * 40, start_smooth * 10), 
              linewidth = 12, color = 'k', alpha = 0.4)
 
 plt.loglog(f_short, 
@@ -105,7 +107,8 @@ plt.loglog(f_short,
 
 neutral, = plt.loglog(f_short, 
            2 * Un * N * L * np.ones(len(f_short)) / f_short,
-           label = r'$\boldmath{2 N U_n / f}$', linestyle = '--', linewidth = 12,
+           label = r'$\boldmath{2 N U_n / f}$', linestyle = '--', 
+           linewidth = 12,
            color = '#cc79a7')
 
 
@@ -121,12 +124,11 @@ flat, = plt.loglog(f_short, np.ones(len(f_short)) * L / v, linewidth = 12,
 
 #xvals = [0.002]
 #xvals = [0.002, 0.0002]
-xvals = [0.02, 0.0002, 0.005]
+xvals = [0.02, 0.00005, 0.007]
 
 labelLines(plt.gca().get_lines() ,xvals = xvals, fontsize = 150)
 
-plt.show()
-
+plt.savefig('Figure2.pdf', format = 'pdf')
 ##########################
 
 

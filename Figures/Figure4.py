@@ -40,7 +40,6 @@ nSFS = 1000
 tfixlist = [1000, 10000, 100000]
 viridis_cmap = cm.get_cmap('viridis')
 
-colorlist = ['y', 'r', 'c', 'g', 'm', 'b', 'k']
 fitlist = []
 
 f = np.arange(1, n + 1) / n
@@ -67,7 +66,7 @@ v = np.average(v_list)
 #xpositions = [6 * 10 ** (-5), 10 ** (-3), 10 ** (-2)]
 xpositions = [6 * 10 ** (-5), 8 * 10 ** (-4), 10 ** (-2)]
 
-plt.text(5 * 10 ** -4, 200, r'$f = t / N + 1 / (\rho v)$', fontsize = 50)
+plt.text(2 * 10 ** -4, 200, r'$\boldmath{f = t / N + 1 / (\rho v)}$', fontsize = 100)
 flat, = plt.loglog(f_short, np.ones(len(f_short)) * L / v, linewidth = 5, 
            linestyle = 'dotted'
               , label = r'$ U_n L / v$', color = '#d55e00')
@@ -98,12 +97,12 @@ for tind in range(len(tfixlist)):
     plt.vlines((tfix + L / v) / (N * L), 10 ** 3, 10 ** 11, linestyle = 'dotted',
                linewidth = 5, color = viridis_cmap(tind * 0.4))
     plt.text(xpositions[tind], 5 * 10 ** 11, 
-             r'$t = $' + '{:.1e}'.format(tfix), 
-             color = viridis_cmap(tind * 0.4), fontsize = 50)    
+             r'$\boldmath{t = }$' + '{:.1e}'.format(tfix), 
+             color = viridis_cmap(tind * 0.4), fontsize = 60)    
     popt, pcov = curve_fit(power_law_fit, f[fit_range_ind], SFS[fit_range_ind])
     fitlist.append(popt[0])
 
-
+plt.savefig('Figure4.pdf', format = 'pdf')
 #plt.text(10 ** (-3.5), 5 * 10 ** 11, 
 #         r'$f = t / N + 1 / (\rho v)$', color = 'k')
 #plt.loglog(f_short, 
