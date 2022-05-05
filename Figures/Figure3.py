@@ -20,12 +20,6 @@ from scipy.optimize import curve_fit
 
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif', size = 60, weight = 'bold')
-L = 500
-rho = 20000
-N = rho * L
-s = 0.05
-m = 0.25
-tfinal = 1000000
 Un = 1
 r = 0
 n_forward = 100
@@ -36,11 +30,14 @@ tfix = 0
 n = 100000
 nSFS = 1000
 
-plasma_cmap = cm.get_cmap('plasma')
-viridis_cmap = cm.get_cmap('viridis')
+blue_cmap = cm.get_cmap('Blues')
+red_cmap = cm.get_cmap('Reds')
+grey_cmap = cm.get_cmap('Greys')
 
-slist = [0.02, 0.03, 0.04, 0.05, 0.06]
-mlist = [0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
+slist = np.arange(0.02, 0.07, 0.01)
+mlist = np.arange(0.2, 0.55, 0.05)
+Lrholist = [[500, 2000], [1000, 10000], [1000, 1000], [2000, 5000]]
+tfinallist = [10000, 100000, 100000, 100000]
 
 xpositions = [10**(-3), 10**(-3), 10**(-3), 6 * 10 ** (-5), 6 * 10 ** (-5)]
 ypositions = [10 ** 5, 10 ** 4, 10 ** 3, 10 ** 4, 10 ** 3]
@@ -58,21 +55,13 @@ plt.figure(figsize = (24, 18))
 
 for sind in range(len(slist)):
     s = slist[sind]
-    # Find v from lines
+    m = 0.25
+    L = 500
+    rho = 20000
+    N = rho * L
+    tfinal = 1000000
 
-#    freq_file = open(
-#       'forward_simulation_data/L={}_N={}_s={:.6f}_m={:.6f}_tfinal={}_0.txt'.format(L, rho, s, m, tfinal))
-#    lines = np.loadtxt(freq_file, dtype=np.int64)
-#    tf_real = len(lines)
-#    v_list = []
-#    for t in np.arange(int(tf_real / 4), int(tf_real * 3 / 4)):
-#        line1 = lines[t]
-#        line2 = lines[t + 1]
-#        psum1 = sum(line1) / N
-#        psum2 = sum(line2) / N
-#        v_list.append(psum2 - psum1)
-#    
-#    v = np.average(v_list)
+    fstart_ind = int(10 / (rho * np.sqrt(m * s)) * n)
     SFS = np.zeros(n)
 
     for i in range(n_forward):
@@ -82,37 +71,22 @@ for sind in range(len(slist)):
 
     
     SFS /= n_forward
+    y_smooth = moving_average(SFS * s / np.log(N * s * f), 
+                                navg, start_smooth)
 
-
-    plt.loglog(f_short, 
-                 moving_average(SFS * s / np.log(N * s * f), 
-                                navg, start_smooth), 
-                 linewidth = 5, 
-                 color = plasma_cmap(sind * 0.2), 
+    plt.scatter(f_short[fstart_ind::15], y_smooth[fstart_ind::15], 
+                 s = 250, marker = 'v', alpha = 0.5, 
+                 color = blue_cmap(100 - sind * 5), 
                  label = '$s = ${:.2f}'.format(s))
-
-#    plt.loglog(f_short, np.ones(len(f_short)) * L / v, linewidth = 2, 
-#               linestyle = '-.'
-#                  , label = '$p(f) = U_n L / v, s = ${:.2f}'.format(s), 
-#                  color = colorlist[sind])
-#    plt.vlines((tfix + L / v) / (N * L), 10 ** 3, 10 ** 11, linestyle = 'dotted',
-#               linewidth = 5, color = plasma_cmap(sind * 0.2))
-#    plt.text(xpositions[sind], ypositions[sind], 
-#             r'$s = $' + '{:.2f}'.format(s), 
-#             color = plasma_cmap(sind * 0.2), fontsize = 50)    
-#    def power_law_fit(x, a):
-#        ''' Use this to fit log(rho sqrt(ms) f) f^-2 (intermediate f) '''
-#        return a * np.log(rho * L * s * x) * x ** (-2)
-#    
-#    popt, pcov = curve_fit(power_law_fit, f[fit_range_ind], SFS[fit_range_ind])
-#    height = popt[0]
-#    fitlist.append(height)
-#    plt.loglog(f_short, height * np.log(rho * L * s * f_short) * f_short ** (-2), 
-#               linewidth = 5, color = plasma_cmap(sind * 0.2), linestyle = '--')
-
 for mind in range(len(mlist)):
     s = 0.05
     m = mlist[mind]
+    L = 500
+    rho = 20000
+    N = rho * L
+    tfinal = 1000000
+
+    fstart_ind = int(10 / (rho * np.sqrt(m * s)) * n)    
     SFS = np.zeros(n)
 
     for i in range(n_forward):
@@ -122,24 +96,47 @@ for mind in range(len(mlist)):
 
     
     SFS /= n_forward
+    y_smooth = moving_average(SFS * s / np.log(N * s * f), 
+                                navg, start_smooth)
 
-
-    plt.loglog(f_short, 
-                 moving_average(SFS * s / np.log(N * s * f), 
-                                navg, start_smooth), 
-                 linewidth = 5, 
-                 color = viridis_cmap(mind * 0.12), 
+    plt.scatter(f_short[fstart_ind::15], y_smooth[fstart_ind::15], 
+                 s = 250, marker = 'o', alpha = 0.5, 
+                 color = red_cmap(100 - mind * 5), 
                  label = '$m = ${:.2f}'.format(m))
 
     
+for Lrhoind in range(len(Lrholist)):
+    s = 0.05
+    m = 0.25
+    L, rho = Lrholist[Lrhoind]
+    N = L * rho
+    tfinal = tfinallist[Lrhoind]
+    fstart_ind = int(10 / (rho * np.sqrt(m * s)) * n)
 
+    SFS = np.zeros(n)
 
-plt.xlim((10 ** -3, 10 ** -1))
-plt.ylim((5 * 10, 2 * 10 ** 6))
+    for i in range(n_forward):
+        SFS += n * np.loadtxt(
+        'backward_simulation_data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
+                 rho, s, m, r, tfinal, n, tfix, nSFS, i))
+
+    
+    SFS /= n_forward
+    y_smooth = moving_average(SFS * s / np.log(N * s * f), 
+                                navg, start_smooth)
+
+    plt.scatter(f_short[fstart_ind::15], y_smooth[fstart_ind::15], 
+                 s = 250, marker = '*', alpha = 0.5, 
+                 color = grey_cmap(100 - Lrhoind * 5), 
+                 label = '$L = ${}'.format(L) + '$\rho = ${}'.format(rho))
+   
+plt.loglog()
+plt.xlim((3 * 10 ** -3, 10 ** -1))
+plt.ylim((5 * 10, 5 * 10 ** 4))
 plt.xlabel('Frequency, ' + r'$\boldmath{f}$', fontsize = 100)
 plt.ylabel(r'$\boldmath{P(f) \cdot s / \ln(Nsf)}$', fontsize = 100)
 #plt.legend(fontsize = 'medium', loc = 'upper right')
-plt.savefig('Figure3b_new.pdf', format = 'pdf')
+plt.savefig('Figure3b_new.pdf', format = 'pdf', bbox_inches = 'tight')
 
 
 ########################################3333

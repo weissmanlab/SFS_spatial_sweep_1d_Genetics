@@ -146,39 +146,39 @@ plt.savefig('Figure2_loglog.pdf', format = 'pdf', bbox_inches = 'tight')
 ##########################
 #
 #
-#plt.rc('font', family='serif', size = 150, weight = 'bold')
-#plt.figure(figsize = (48, 36))
-#plt.xlabel(r'Frequency, $f$')
-#plt.ylabel(r'Number of alleles, $P(f)$')
-##
-#plt.loglog(moving_average(f_wellmixed, navg, start_smooth) , 
-#             moving_average(SFS_well_mixed, navg, start_smooth), 
-#             linewidth = 12, color = 'k', alpha = 0.4)
+plt.rc('font', family='serif', size = 150, weight = 'bold')
+plt.figure(figsize = (48, 36))
+plt.xlabel(r'Frequency, $f$')
+plt.ylabel(r'Number of alleles, $P(f)$')
 #
-#plt.loglog(f_short, 
-#             moving_average(SFS, navg, start_smooth), 
-#             linewidth = 12, color = 'k')
-#bsc, = plt.loglog(f_short, 
-#           Un / s / f_short ** 2, 
-#           linestyle = '-.', linewidth = 12, color = '#0072b2', 
-#           label = r'$\boldmath{U_n / (sf^2)}$')
-#bsc2, = plt.loglog(f_short, 
-#           Un * np.log(N * s * f_short) / s / f_short ** 2 / 2, 
-#           linestyle = '-.', linewidth = 12, color = 'r', 
-#           label = r'$\boldmath{U_n \ln(Nsf) / (2 sf^2)}$')
-#
-#plt.xlim((10 ** -3, 2 * 10 ** -1))
-#plt.ylim((10, 10 ** 9))
-#plt.text(4 * 10 ** (-2), 2 * 10 ** 5, 'spatial', color = 'k', 
-#         fontsize = 150, backgroundcolor = 'w')
-#plt.text(4 * 10 ** (-2), 10 ** 2, 'well-mixed', color = 'k', alpha = 0.5, 
-#         fontsize = 150, backgroundcolor = 'w')
-#plt.text(5 * 10 ** (-3), 10 ** 7, r'$\boldmath{U_n \ln(Nsf) / (2 sf^2)}$',  color = 'r', 
-#         fontsize = 150, backgroundcolor = 'w')
-#plt.text(1.2 * 10 ** (-3), 4 * 10 ** 5, r'$\boldmath{U_n / (sf^2)}$', 
-#         color = '#0072b2', 
-#         fontsize = 150, backgroundcolor = 'w')
-#
-#plt.savefig('Figure3a.pdf', format = 'pdf')
-#
+plt.loglog(moving_average(f_wellmixed, navg, start_smooth) , 
+             moving_average(SFS_well_mixed, navg, start_smooth), 
+             linewidth = 12, color = 'k', alpha = 0.4)
+
+plt.loglog(f_short, 
+             moving_average(SFS, navg, start_smooth), 
+             linewidth = 12, color = 'k')
+bsc, = plt.loglog(f_short, 
+           Un / s / f_short ** 2, 
+           linestyle = '-.', linewidth = 12, color = '#0072b2', 
+           label = r'$\boldmath{U_n / (sf^2)}$')
+bsc2, = plt.loglog(f_short, 
+           Un * np.log(N * s * f_short) / s / f_short ** 2 / 2, 
+           linestyle = '-.', linewidth = 12, color = 'r', 
+           label = r'$\boldmath{U_n \ln(Nsf) / (2 sf^2)}$')
+
+plt.xlim((10 ** -3, 2 * 10 ** -1))
+plt.ylim((100, 10 ** 8))
+plt.text(4 * 10 ** (-2), 2 * 10 ** 5, 'spatial', color = 'k', 
+         fontsize = 150, backgroundcolor = 'w')
+plt.text(2 * 10 ** (-2), 2 * 10 ** 2, 'well-mixed', color = 'k', alpha = 0.5, 
+         fontsize = 150, backgroundcolor = 'w')
+plt.text(5 * 10 ** (-3), 10 ** 7, r'$\boldmath{U_n \ln(Nsf) / (2 sf^2)}$',  color = 'r', 
+         fontsize = 150, backgroundcolor = 'w')
+plt.text(1.2 * 10 ** (-3), 4 * 10 ** 5, r'$\boldmath{U_n / (sf^2)}$', 
+         color = '#0072b2', 
+         fontsize = 150, backgroundcolor = 'w')
+
+plt.savefig('Figure3a.pdf', format = 'pdf', bbox_inches = 'tight')
+
 #
