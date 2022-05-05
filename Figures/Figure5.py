@@ -96,3 +96,4 @@ plt.semilogy(logit(f_short_1d), 2 * N / f_short_1d,
                  linewidth = 5, linestyle = '--', label = r'$2 N U_n / f$', 
                  color = 'r')
 
+plt.savefig('Figure5.pdf', format = 'pdf', bbox_inches = 'tight')
