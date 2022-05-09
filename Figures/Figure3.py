@@ -8,6 +8,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from labellines import labelLines
+from matplotlib.legend_handler import HandlerLine2D, HandlerTuple
+
+
 def moving_average(a, n = 3, start_smooth = 100):
     a_start = a[:start_smooth]
     a_end = a[start_smooth:]
@@ -50,8 +53,8 @@ start_smooth = 100
 f_short = moving_average(f, navg, start_smooth)
 
 fit_range_ind = np.arange(200,1000)
-plt.figure(figsize = (24, 18))
-
+fig, ax = plt.subplots(figsize = (24, 18))
+vary_s_list = []
 
 for sind in range(len(slist)):
     s = slist[sind]
@@ -74,10 +77,14 @@ for sind in range(len(slist)):
     y_smooth = moving_average(SFS * s / np.log(N * s * f), 
                                 navg, start_smooth)
 
-    plt.scatter(f_short[fstart_ind::15], y_smooth[fstart_ind::15], 
+    s_plot = ax.scatter(f_short[fstart_ind::20], y_smooth[fstart_ind::20], 
                  s = 250, marker = 'v', alpha = 0.5, 
-                 color = blue_cmap(100 - sind * 5), 
-                 label = '$s = ${:.2f}'.format(s))
+                 color = blue_cmap(100 - sind * 5))
+    vary_s_list.append(s_plot)
+    
+vary_s_tuple = tuple(vary_s_list)
+
+vary_m_list = []
 for mind in range(len(mlist)):
     s = 0.05
     m = mlist[mind]
@@ -99,12 +106,13 @@ for mind in range(len(mlist)):
     y_smooth = moving_average(SFS * s / np.log(N * s * f), 
                                 navg, start_smooth)
 
-    plt.scatter(f_short[fstart_ind::15], y_smooth[fstart_ind::15], 
+    m_plot = ax.scatter(f_short[fstart_ind::20], y_smooth[fstart_ind::20], 
                  s = 250, marker = 'o', alpha = 0.5, 
-                 color = red_cmap(100 - mind * 5), 
-                 label = '$m = ${:.2f}'.format(m))
+                 color = red_cmap(100 - mind * 5))
+    vary_m_list.append(m_plot)
+vary_m_tuple = tuple(vary_m_list)
 
-    
+vary_Lrho_list = []    
 for Lrhoind in range(len(Lrholist)):
     s = 0.05
     m = 0.25
@@ -125,28 +133,18 @@ for Lrhoind in range(len(Lrholist)):
     y_smooth = moving_average(SFS * s / np.log(N * s * f), 
                                 navg, start_smooth)
 
-    plt.scatter(f_short[fstart_ind::15], y_smooth[fstart_ind::15], 
+    Lrho_plot = ax.scatter(f_short[fstart_ind::15], y_smooth[fstart_ind::15], 
                  s = 250, marker = '*', alpha = 0.5, 
-                 color = grey_cmap(100 - Lrhoind * 5), 
-                 label = '$L = ${}'.format(L) + '$\rho = ${}'.format(rho))
-   
-plt.loglog()
-plt.xlim((3 * 10 ** -3, 10 ** -1))
-plt.ylim((5 * 10, 5 * 10 ** 4))
-plt.xlabel('Frequency, ' + r'$\boldmath{f}$', fontsize = 100)
-plt.ylabel(r'$\boldmath{P(f) \cdot s / \ln(Nsf)}$', fontsize = 100)
-#plt.legend(fontsize = 'medium', loc = 'upper right')
+                 color = grey_cmap(100 - Lrhoind * 5))
+    vary_Lrho_list.append(Lrho_plot)
+vary_Lrho_tuple = tuple(vary_Lrho_list)
+
+ax.loglog()
+ax.set_xlim((3 * 10 ** -3, 10 ** -1))
+ax.set_ylim((5 * 10, 5 * 10 ** 4))
+ax.set_xlabel('Frequency, ' + r'$\boldmath{f}$', fontsize = 100)
+ax.set_ylabel(r'$\boldmath{P(f) \cdot s / \ln(Nsf)}$', fontsize = 100)
+ax.legend([vary_s_tuple, vary_m_tuple, vary_Lrho_tuple], [r'vary $s$', 
+          r'vary $m$', r'vary $\rho$ and $L$'], 
+    handler_map={tuple: HandlerTuple(ndivide=None)})
 plt.savefig('Figure3b_new.pdf', format = 'pdf', bbox_inches = 'tight')
-
-
-########################################3333
-#plt.figure(figsize = (24, 18))
-#plt.plot(slist, fitlist, 'o',  ms = 60, label = 'simulation')
-#slist2 = np.linspace(slist[0], slist[-1], 100)
-#plt.plot(slist2, Un / 2 / np.array(slist2), label = '$k = U_n / 2s$', 
-#           linewidth = 10)
-#plt.xlabel('Selection coefficient, ' + r'$\boldmath{s}$', fontsize = 100)
-#plt.ylabel('Fitting coefficient, ' + r'$\boldmath{k}$', fontsize = 100)
-#plt.legend()
-#plt.title('fitting AFS to $P(f) = k \ln( N s f) / f^2$')
-#plt.savefig('Figure3b.pdf', format = 'pdf')
