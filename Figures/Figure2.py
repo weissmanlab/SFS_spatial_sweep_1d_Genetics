@@ -173,7 +173,7 @@ plt.text(4 * 10 ** (-2), 2 * 10 ** 5, 'spatial', color = 'k',
          fontsize = 150, backgroundcolor = 'w')
 plt.text(2 * 10 ** (-2), 2 * 10 ** 2, 'well-mixed', color = 'k', alpha = 0.5, 
          fontsize = 150, backgroundcolor = 'w')
-plt.text(5 * 10 ** (-3), 10 ** 7, r'$\boldmath{U_n \ln(Nsf) / (2 sf^2)}$',  color = 'r', 
+plt.text(5 * 10 ** (-3), 10 ** 7, r'$\boldmath{U_n \ln(Nsf) / (2 sf^2)}$',  color = 'b', 
          fontsize = 150, backgroundcolor = 'w')
 plt.text(1.2 * 10 ** (-3), 4 * 10 ** 5, r'$\boldmath{U_n / (sf^2)}$', 
          color = '#0072b2', 

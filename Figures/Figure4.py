@@ -78,8 +78,8 @@ neutral, = plt.loglog(f_short,
            linewidth = 5, color = '#cc79a7')
 bsc, = plt.loglog(f_short, 
            Un / (2 * s * f_short ** 2) * np.log(N * s * f_short), 
-           label = r'$U_n ln(Nsf) / (2 s f^2)$', 
-           linestyle = '-.', linewidth = 5, color = '#0072b2')
+           label = r'$U_n \ln(Nsf) / (2 s f^2)$', 
+           linestyle = '-.', linewidth = 5, color = 'b')
 
 xvals = [5 * 10 ** (-5), 0.1, 5 * 10 ** -5]
 labelLines(plt.gca().get_lines(), xvals = xvals, fontsize = 75)
