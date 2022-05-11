@@ -173,7 +173,13 @@ plt.xlim((5 * 10 ** -4, 2 * 10 ** -1))
 plt.ylim((200, 2 * 10 ** 8))
 plt.text(4 * 10 ** (-2), 2 * 10 ** 5, 'spatial', color = 'k', 
          fontsize = 150, backgroundcolor = 'w')
+<<<<<<< HEAD
 plt.text(2 * 10 ** (-2), 5 * 10 ** 2, 'well-mixed', color = 'k', alpha = 0.5, 
+=======
+plt.text(2 * 10 ** (-2), 2 * 10 ** 2, 'well-mixed', color = 'k', alpha = 0.5, 
+         fontsize = 150, backgroundcolor = 'w')
+plt.text(5 * 10 ** (-3), 10 ** 7, r'$\boldmath{U_n \ln(Nsf) / (2 sf^2)}$',  color = 'b', 
+>>>>>>> 6c9addc3d7644b827696e6d5b47cbde6506537d2
          fontsize = 150, backgroundcolor = 'w')
 plt.text(5 * 10 ** (-3), 10 ** 7, r'$\boldmath{U_n \ln(Nsf) / (2 sf^2)}$',  
          color = 'b', fontsize = 150, backgroundcolor = 'w')
