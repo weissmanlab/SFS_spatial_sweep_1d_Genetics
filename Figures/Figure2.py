@@ -68,19 +68,8 @@ for t in np.arange(int(tf_real / 4), int(tf_real * 3 / 4)):
 
 v = np.average(v_list)
 
-SFS = np.zeros(n)
-#### For tfix = 0 
-#for i in range(n_forward):
-#    SFS += n * np.loadtxt(
-#   'backward simulation data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-#             N, s, m, r, tfinal, n, tfix, nSFS, i))
-
-for i in range(n_forward):
-    SFS += n * np.loadtxt(
-    'backward_simulation_data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-                 rho, s, m, r, tfinal, n, tfix, nSFS, i))
-
-SFS /= n_forward
+SFS = np.loadtxt('backward_simulation_data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_avged.txt'.format(L, 
+             rho, s, m, r, tfinal, n, tfix, nSFS))
 
 SFS_well_mixed = np.loadtxt('backward_simulation_data/expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.2e}_nsample={}_nsim={}.txt'.format(
         N, tfix, s, r, n_wellmixed, nsim_wellmixed))
@@ -142,7 +131,7 @@ xvals = [0.02, 0.00005, 0.007]
 #plt.text(0.5, 150, r'$\boldmath{U_n / (sf^2)}$', color = '#0072b2',
 #                                fontsize = 180)
 plt.ylim((10, 2 * 10 ** 12))
-labelLines(plt.gca().get_lines() ,xvals = xvals, fontsize = 180)
+labelLines(plt.gca().get_lines() ,xvals = xvals, fontsize = 180, backgroundcolor = 'w')
 
 plt.savefig('Figure2_loglog.pdf', format = 'pdf', bbox_inches = 'tight')
 ##########################
@@ -173,13 +162,7 @@ plt.xlim((5 * 10 ** -4, 2 * 10 ** -1))
 plt.ylim((200, 2 * 10 ** 8))
 plt.text(4 * 10 ** (-2), 2 * 10 ** 5, 'spatial', color = 'k', 
          fontsize = 150, backgroundcolor = 'w')
-<<<<<<< HEAD
-plt.text(2 * 10 ** (-2), 5 * 10 ** 2, 'well-mixed', color = 'k', alpha = 0.5, 
-=======
 plt.text(2 * 10 ** (-2), 2 * 10 ** 2, 'well-mixed', color = 'k', alpha = 0.5, 
-         fontsize = 150, backgroundcolor = 'w')
-plt.text(5 * 10 ** (-3), 10 ** 7, r'$\boldmath{U_n \ln(Nsf) / (2 sf^2)}$',  color = 'b', 
->>>>>>> 6c9addc3d7644b827696e6d5b47cbde6506537d2
          fontsize = 150, backgroundcolor = 'w')
 plt.text(5 * 10 ** (-3), 10 ** 7, r'$\boldmath{U_n \ln(Nsf) / (2 sf^2)}$',  
          color = 'b', fontsize = 150, backgroundcolor = 'w')
