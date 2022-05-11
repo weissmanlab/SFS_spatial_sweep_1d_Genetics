@@ -77,9 +77,9 @@ for sind in range(len(slist)):
     y_smooth = moving_average(SFS * s / np.log(N * s * f), 
                                 navg, start_smooth)
 
-    s_plot = ax.scatter(f_short[fstart_ind::20], y_smooth[fstart_ind::20], 
-                 s = 250, marker = 'v', alpha = 0.5, 
-                 color = blue_cmap(100 - sind * 5))
+    s_plot = ax.scatter(f_short[fstart_ind::30], y_smooth[fstart_ind::30], 
+                 s = 250, marker = 'v', 
+                 color = blue_cmap(100 - sind * 10))
     vary_s_list.append(s_plot)
     
 vary_s_tuple = tuple(vary_s_list)
@@ -106,9 +106,9 @@ for mind in range(len(mlist)):
     y_smooth = moving_average(SFS * s / np.log(N * s * f), 
                                 navg, start_smooth)
 
-    m_plot = ax.scatter(f_short[fstart_ind::20], y_smooth[fstart_ind::20], 
-                 s = 250, marker = 'o', alpha = 0.5, 
-                 color = red_cmap(100 - mind * 5))
+    m_plot = ax.scatter(f_short[fstart_ind::30], y_smooth[fstart_ind::30], 
+                 s = 250, marker = 'o', 
+                 color = red_cmap(100 - mind * 10))
     vary_m_list.append(m_plot)
 vary_m_tuple = tuple(vary_m_list)
 
@@ -134,8 +134,8 @@ for Lrhoind in range(len(Lrholist)):
                                 navg, start_smooth)
 
     Lrho_plot = ax.scatter(f_short[fstart_ind::15], y_smooth[fstart_ind::15], 
-                 s = 250, marker = '*', alpha = 0.5, 
-                 color = grey_cmap(100 - Lrhoind * 5))
+                 s = 250, marker = '*', 
+                 color = grey_cmap(100 - Lrhoind * 10))
     vary_Lrho_list.append(Lrho_plot)
 vary_Lrho_tuple = tuple(vary_Lrho_list)
 
@@ -144,7 +144,11 @@ ax.set_xlim((3 * 10 ** -3, 10 ** -1))
 ax.set_ylim((5 * 10, 5 * 10 ** 4))
 ax.set_xlabel('Frequency, ' + r'$\boldmath{f}$', fontsize = 100)
 ax.set_ylabel(r'$\boldmath{P(f) \cdot s / \ln(Nsf)}$', fontsize = 100)
-ax.legend([vary_s_tuple, vary_m_tuple, vary_Lrho_tuple], [r'vary $s$', 
-          r'vary $m$', r'vary $\rho$ and $L$'], 
+ax.legend([vary_s_tuple, vary_m_tuple, vary_Lrho_tuple], [r'vary $s$, '
+          + r'$m = 0.25, L = 500, \rho = 2\times 10^4$', 
+          r'vary $m$, '
+          + r' $s = 0.05, L = 500, \rho = 2\times 10^4$', 
+          r'vary $\rho$ and $L$, ' 
+          + r'$s = 0.05, m = 0.25$'], fontsize = 30, 
     handler_map={tuple: HandlerTuple(ndivide=None)})
 plt.savefig('Figure3b_new.pdf', format = 'pdf', bbox_inches = 'tight')

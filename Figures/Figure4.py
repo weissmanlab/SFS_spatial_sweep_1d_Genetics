@@ -81,7 +81,7 @@ bsc, = plt.loglog(f_short,
            label = r'$U_n ln(Nsf) / (2 s f^2)$', 
            linestyle = '-.', linewidth = 5, color = '#0072b2')
 
-xvals = [5 * 10 ** (-5), 0.1, 5 * 10 ** -5]
+xvals = [5 * 10 ** (-5), 0.1, 3 * 10 ** -5]
 labelLines(plt.gca().get_lines(), xvals = xvals, fontsize = 75)
 
 for tind in range(len(tfixlist)):
@@ -114,6 +114,5 @@ for tind in range(len(tfixlist)):
     fitlist.append(popt[0])
 
 
-
+plt.xlim((2 * 10 ** -6, 0.99))
 plt.savefig('Figure4.pdf', format = 'pdf', bbox_inches = 'tight')
-plt.xlim((4 * 10 ** -6, 1))

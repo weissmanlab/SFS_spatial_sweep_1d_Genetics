@@ -1,6 +1,8 @@
 '''
 Generate plots for Figure 2:
     SFS of asexual 1D and well-mixed populations.
+
+And Figure 3a which is a closer-up version of Figure 2 
 '''
 
 
@@ -164,17 +166,17 @@ bsc, = plt.loglog(f_short,
            label = r'$\boldmath{U_n / (sf^2)}$')
 bsc2, = plt.loglog(f_short, 
            Un * np.log(N * s * f_short) / s / f_short ** 2 / 2, 
-           linestyle = '-.', linewidth = 12, color = 'r', 
+           linestyle = '-.', linewidth = 12, color = 'b', 
            label = r'$\boldmath{U_n \ln(Nsf) / (2 sf^2)}$')
 
-plt.xlim((10 ** -3, 2 * 10 ** -1))
-plt.ylim((100, 10 ** 8))
+plt.xlim((5 * 10 ** -4, 2 * 10 ** -1))
+plt.ylim((200, 2 * 10 ** 8))
 plt.text(4 * 10 ** (-2), 2 * 10 ** 5, 'spatial', color = 'k', 
          fontsize = 150, backgroundcolor = 'w')
-plt.text(2 * 10 ** (-2), 2 * 10 ** 2, 'well-mixed', color = 'k', alpha = 0.5, 
+plt.text(2 * 10 ** (-2), 5 * 10 ** 2, 'well-mixed', color = 'k', alpha = 0.5, 
          fontsize = 150, backgroundcolor = 'w')
-plt.text(5 * 10 ** (-3), 10 ** 7, r'$\boldmath{U_n \ln(Nsf) / (2 sf^2)}$',  color = 'r', 
-         fontsize = 150, backgroundcolor = 'w')
+plt.text(5 * 10 ** (-3), 10 ** 7, r'$\boldmath{U_n \ln(Nsf) / (2 sf^2)}$',  
+         color = 'b', fontsize = 150, backgroundcolor = 'w')
 plt.text(1.2 * 10 ** (-3), 4 * 10 ** 5, r'$\boldmath{U_n / (sf^2)}$', 
          color = '#0072b2', 
          fontsize = 150, backgroundcolor = 'w')

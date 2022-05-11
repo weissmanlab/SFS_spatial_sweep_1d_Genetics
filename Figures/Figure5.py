@@ -17,6 +17,7 @@ s = 0.05
 rlist = [10 ** (-2), 5 * 10 ** (-4), 10 ** -4, 10 ** (-5)]
 Nforwardlist = [1000, 1000, 1000, 3000]
 n = 10000
+n_sim_well_mixed = 100
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
@@ -25,9 +26,6 @@ plt.rc('font', family='serif', size = 60, weight = 'bold')
 
 viridis_cmap = cm.get_cmap('viridis')
 
-plt.figure(figsize = (24, 18))
-plt.xlabel(r'$logit(f)$')
-plt.ylabel(r'$P(f)$')
 
 def moving_average(a, n = 3, start_smooth = 100):
     a_start = a[:start_smooth]
@@ -56,10 +54,17 @@ v = np.average(v_list)
 
 f_BSC_left = np.linspace(10 ** -2.8, 10 ** -1.2)
 f_BSC_right = np.linspace(0.9, 0.995)
+f_BSC_left_wellmixed = np.linspace(10 ** -2.8, 0.5)
+f_BSC_right_wellmixed = np.linspace(0.5, 0.995)
 f_uniform = np.linspace(10 ** -1, 0.9)
 
 for rind in range(len(rlist)):
+    plt.figure(figsize = (24, 18))
+    plt.xlabel(r'$logit(f)$')
+    plt.ylabel(r'$P(f)$')
     r = rlist[rind]
+
+    plt.title(r'$r = ${:.2e}'.format(r))
     N_forward_1d = Nforwardlist[rind]
     smooth_start_1d = 70
     window_size_1d = 100
@@ -70,30 +75,50 @@ for rind in range(len(rlist)):
         SFS_1d += n * np.loadtxt(
         'backward_simulation_data/expected_SFS_L=' 
         + '{}_N={}_s={:.3f}_m={:.2f}_r={:.2e}_nsample={}_t_after_fix={}_Nback={}_Nforw={}.txt'.format(L, 
-                 rho, s, m, r, n, T_after_fix, N_forward_1d, i))
+                 rho, s, m, r, n, T_after_fix, N_forward_1d, i))    
         
     SFS_1d /= n_forward 
     plt.semilogy(logit(f_short_1d), moving_average(SFS_1d, 
                  window_size_1d, smooth_start_1d), linewidth = 3, 
-        label = 'r = {:.2e}'.format(r), color = viridis_cmap(rind * 50))
+        label = 'r = {:.2e}'.format(r), color = 'k')
     if r < 10 ** -3:
         plt.semilogy(logit(f_uniform), 
                      (1 + 2 * N * r) * L / v * np.ones(len(f_uniform)), 
                  linewidth = 5, linestyle = 'dotted', 
                  label = r'$U_n(1 + 2Nr) L / v$', 
-                 color = viridis_cmap(rind * 50))
+                 color = '#ff7f00')
         plt.semilogy(logit(f_BSC_left), 
                  (1 + 2 * N * r) * np.log(N * s * f_BSC_left) / s / f_BSC_left ** 2 / 2, 
                  linewidth = 5, linestyle = '-.', 
                  label = r'$U_n(1 + 2Nr) \ln(Nsf) / 2 s f^2$', 
-                 color = viridis_cmap(rind * 50))
+                 color = '#377eb8')
+
         plt.semilogy(logit(f_BSC_right), 
                  (2 * N * r) * np.log(N * s * (1 - f_BSC_right)) / s / (1 - f_BSC_right) ** 2 / 2, 
                  linewidth = 5, linestyle = '-.', 
-                 color = viridis_cmap(rind * 50), 
-                 label = r'$2 U_n N r \ln(Ns(1 - f)) / s (1 - f)^2$')
-plt.semilogy(logit(f_short_1d), 2 * N / f_short_1d, 
-                 linewidth = 5, linestyle = '--', label = r'$2 N U_n / f$', 
-                 color = 'r')
+                 color ='#4daf4a', 
+                 label = r'$U_n N r \ln(Ns(1 - f)) / s (1 - f)^2$')
 
-plt.savefig('Figure5.pdf', format = 'pdf', bbox_inches = 'tight')
+
+    plt.semilogy(logit(f_BSC_left_wellmixed), 
+                 (1 + 2 * N * r) / s / f_BSC_left_wellmixed ** 2, 
+                 linewidth = 5, alpha = 0.5, linestyle = '-.', 
+                 label = r'$U_n(1 + 2Nr) / s f^2$', 
+                 color = '#377eb8')
+
+    plt.semilogy(logit(f_BSC_right_wellmixed), 
+                 (2 * N * r) / s / (1 - f_BSC_right_wellmixed) ** 2, 
+                 linewidth = 5, linestyle = '-.', alpha = 0.5, 
+                 color ='#4daf4a', 
+                 label = r'$2 U_n N r / s (1 - f)^2$')
+
+    SFS_well_mixed = np.loadtxt(
+            'backward_simulation_data/expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.2e}_nsample={}_nsim={}.txt'.format(
+                    N, T_after_fix, s, r, n, n_sim_well_mixed))
+    plt.semilogy(logit(f_short_1d), moving_average(SFS_well_mixed,
+                 window_size_1d, smooth_start_1d), linewidth = 5, alpha = 0.5, 
+    color = 'k')
+    plt.semilogy(logit(f_short_1d), 2 * N / f_short_1d, 
+                 linewidth = 5, linestyle = '--', label = r'$2 N U_n / f$', 
+                 color = '#f781bf')
+#plt.savefig('Figure5.pdf', format = 'pdf', bbox_inches = 'tight')

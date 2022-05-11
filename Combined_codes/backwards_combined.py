@@ -59,7 +59,15 @@ extra_gen_cutoff = sys.argv[12] if len(sys.argv) >= 13 else int(L ** 2 / m / rho
 
 if (dimension == 1):
     print ('1_D')
-    fname = 'L={}_N={}_s={:.6f}_m={:.6f}_tfinal=1000000_{}.txt'.format(L, rho, s, m, Nforw)
+    if L == 2000:
+        if rho == 5000:
+            fname = 'L={}_N={}_s={:.6f}_m={:.6f}_tfinal=100000_{}.txt'.format(L, rho, s, m, Nforw)
+        else:            
+            fname == 'L={}_N={}_s={:.6f}_m={:.6f}_tfinal=1000000_{}.txt'.format(L, rho, s, m, Nforw)
+    elif L == 1000:
+        fname = 'L={}_N={}_s={:.6f}_m={:.6f}_tfinal=100000_{}.txt'.format(L, rho, s, m, Nforw)
+    elif L == 500:
+        fname = 'L={}_N={}_s={:.6f}_m={:.6f}_tfinal=1000000_{}.txt'.format(L, rho, s, m, Nforw)
     print(fname)
     lines = np.loadtxt(fname, dtype = np.int64)
 
