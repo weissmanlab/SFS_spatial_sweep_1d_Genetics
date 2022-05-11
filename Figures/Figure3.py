@@ -65,15 +65,9 @@ for sind in range(len(slist)):
     tfinal = 1000000
 
     fstart_ind = int(10 / (rho * np.sqrt(m * s)) * n)
-    SFS = np.zeros(n)
-
-    for i in range(n_forward):
-        SFS += n * np.loadtxt(
-        'backward_simulation_data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-                 rho, s, m, r, tfinal, n, tfix, nSFS, i))
-
-    
-    SFS /= n_forward
+    SFS = np.loadtxt(
+        'backward_simulation_data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_avged.txt'.format(L, 
+             rho, s, m, r, tfinal, n, tfix, nSFS))
     y_smooth = moving_average(SFS * s / np.log(N * s * f), 
                                 navg, start_smooth)
 
@@ -94,15 +88,9 @@ for mind in range(len(mlist)):
     tfinal = 1000000
 
     fstart_ind = int(10 / (rho * np.sqrt(m * s)) * n)    
-    SFS = np.zeros(n)
-
-    for i in range(n_forward):
-        SFS += n * np.loadtxt(
-        'backward_simulation_data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-                 rho, s, m, r, tfinal, n, tfix, nSFS, i))
-
-    
-    SFS /= n_forward
+    SFS = np.loadtxt(
+        'backward_simulation_data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_avged.txt'.format(L, 
+             rho, s, m, r, tfinal, n, tfix, nSFS))
     y_smooth = moving_average(SFS * s / np.log(N * s * f), 
                                 navg, start_smooth)
 
@@ -121,15 +109,9 @@ for Lrhoind in range(len(Lrholist)):
     tfinal = tfinallist[Lrhoind]
     fstart_ind = int(10 / (rho * np.sqrt(m * s)) * n)
 
-    SFS = np.zeros(n)
-
-    for i in range(n_forward):
-        SFS += n * np.loadtxt(
-        'backward_simulation_data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-                 rho, s, m, r, tfinal, n, tfix, nSFS, i))
-
-    
-    SFS /= n_forward
+    SFS = np.loadtxt(
+        'backward_simulation_data/expected_SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_avged.txt'.format(L, 
+             rho, s, m, r, tfinal, n, tfix, nSFS))
     y_smooth = moving_average(SFS * s / np.log(N * s * f), 
                                 navg, start_smooth)
 

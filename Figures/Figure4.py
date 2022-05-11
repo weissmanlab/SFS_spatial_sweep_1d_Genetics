@@ -87,17 +87,9 @@ labelLines(plt.gca().get_lines(), xvals = xvals, fontsize = 75)
 for tind in range(len(tfixlist)):
     tfix = tfixlist[tind]
     # Find v from lines
-
-    SFS = np.zeros(n)
-
-    for i in range(n_forward):
-        SFS += n * np.loadtxt(
-        'backward_simulation_data/SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_{}.txt'.format(L, 
-                 rho, s, m, r, tfinal, n, tfix, nSFS, i))
-
-    
-    SFS /= n_forward
-
+    SFS = np.loadtxt(
+        'backward_simulation_data/SFS_L={}_N={}_s={:.6f}_m={:.6f}_r={:.6f}_tfinal={}_nsample={}_tfix={}_sample_uniform_navg={}_avged.txt'.format(L, 
+                 rho, s, m, r, tfinal, n, tfix, nSFS))
 
     plt.loglog(f_short, 
                  moving_average(SFS, navg, start_smooth), 
