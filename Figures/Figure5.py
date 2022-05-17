@@ -11,14 +11,15 @@ m = 0.25
 
 n_forward = 100
 T_after_fix = 0
-tfinal = 1000000
+tfinal = 100000
 
 s = 0.05
-rlist = [5 * 10 ** -4]
-# rlist = [10 ** (-2), 5 * 10 ** (-4), 10 ** -4, 10 ** (-5)]
-Nforwardlist = [1000, 1000, 1000, 3000]
+rlist = [10 ** -2, 5 * 10 ** (-4), 10 ** -4, 10 ** (-5)]
 n = 10000
-n_sim_well_mixed = 1000
+n_sim_well_mixed = 10000
+nback_sim_1d_list = [1000, 1000, 1000, 1000, 3000]
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
@@ -66,62 +67,61 @@ for rind in range(len(rlist)):
     r = rlist[rind]
 
     plt.title(r'$r = ${:.2e}'.format(r))
-    N_forward_1d = Nforwardlist[rind]
+    nback_sim_1d = nback_sim_1d_list[rind]
     smooth_start_1d = 70
     window_size_1d = 100
     f_1d = np.arange(1 / n, 1 + 1 / n, 1 / n)
-    SFS_1d = np.zeros(n)
     f_short_1d = moving_average(f_1d, window_size_1d, smooth_start_1d)
-    f_short_wellmixed = moving_average(f_1d, window_size_1d * 10, smooth_start_1d)
-
-    for i in np.arange(0, n_forward):
-        SFS_1d += n * np.loadtxt(
-        'backward_simulation_data/expected_SFS_L=' 
-        + '{}_N={}_s={:.3f}_m={:.2f}_r={:.2e}_nsample={}_t_after_fix={}_Nback={}_Nforw={}.txt'.format(L, 
-                 rho, s, m, r, n, T_after_fix, N_forward_1d, i))    
-        
-    SFS_1d /= n_forward 
+    f_short_wellmixed = moving_average(f_1d, window_size_1d, smooth_start_1d)
+    SFS_1d = np.loadtxt('backward_simulation_data/expected_SFS_L=' 
+    + '{}_N={}_s={:.3f}_m={:.2f}_r={:.2e}_nsample={}_t_after_fix={}_Nback={}_avged.txt'.format(L, 
+             rho, s, m, r, n, T_after_fix, nback_sim_1d))
     plt.semilogy(logit(f_short_1d), moving_average(SFS_1d, 
-                 window_size_1d, smooth_start_1d), linewidth = 3, 
+                  window_size_1d, smooth_start_1d), linewidth = 3, 
         label = 'r = {:.2e}'.format(r), color = 'k')
     if r < 10 ** -3:
         plt.semilogy(logit(f_uniform), 
-                     (1 + 2 * N * r) * L / v * np.ones(len(f_uniform)), 
-                 linewidth = 5, linestyle = 'dotted', 
-                 label = r'$U_n(1 + 2Nr) L / v$', 
-                 color = '#ff7f00')
-        # plt.semilogy(logit(f_BSC_left), 
-        #          (1 + 2 * N * r) * np.log(N * s * f_BSC_left) / s / f_BSC_left ** 2 / 2, 
-        #          linewidth = 5, linestyle = '-.', 
-        #          label = r'$U_n(1 + 2Nr) \ln(Nsf) / 2 s f^2$', 
-        #          color = '#377eb8')
+                      (1 + 2 * N * r) * L / v * np.ones(len(f_uniform)), 
+                  linewidth = 5, linestyle = 'dotted', 
+                  label = r'$U_n(1 + 2Nr) L / v$', 
+                  color = '#ff7f00')
+        plt.semilogy(logit(f_BSC_left), 
+                  (1 + 2 * N * r) * np.log(N * s * f_BSC_left) / s / f_BSC_left ** 2 / 2, 
+                  linewidth = 5, linestyle = '-.', 
+                  label = r'$U_n(1 + 2Nr) \ln(Nsf) / 2 s f^2$', 
+                  color = '#377eb8')
 
-        # plt.semilogy(logit(f_BSC_right), 
-        #          (2 * N * r) * np.log(N * s * (1 - f_BSC_right)) / s / (1 - f_BSC_right) ** 2 / 2, 
-        #          linewidth = 5, linestyle = '-.', 
-        #          color ='#4daf4a', 
-        #          label = r'$U_n N r \ln(Ns(1 - f)) / s (1 - f)^2$')
+        plt.semilogy(logit(f_BSC_right), 
+                  (2 * N * r) * np.log(N * s * (1 - f_BSC_right)) / s / (1 - f_BSC_right) ** 2 / 2, 
+                  linewidth = 5, linestyle = '-.', 
+                  color ='#4daf4a', 
+                  label = r'$U_n N r \ln(Ns(1 - f)) / s (1 - f)^2$')
 
+    if r < 10 ** -2:
+        plt.semilogy(logit(f_BSC_left_wellmixed), 
+                  (1 + 2 * N * r) / s / f_BSC_left_wellmixed ** 2, 
+                  linewidth = 5, alpha = 0.5, linestyle = '-.', 
+                  label = r'$U_n(1 + 2Nr) / s f^2$', 
+                  color = '#377eb8')
 
-    # plt.semilogy(logit(f_BSC_left_wellmixed), 
-    #              (1 + 2 * N * r) / s / f_BSC_left_wellmixed ** 2, 
-    #              linewidth = 5, alpha = 0.5, linestyle = '-.', 
-    #              label = r'$U_n(1 + 2Nr) / s f^2$', 
-    #              color = '#377eb8')
-
-    # plt.semilogy(logit(f_BSC_right_wellmixed), 
-    #              (2 * N * r) / s / (1 - f_BSC_right_wellmixed) ** 2, 
-    #              linewidth = 5, linestyle = '-.', alpha = 0.5, 
-    #              color ='#4daf4a', 
-    #              label = r'$2 U_n N r / s (1 - f)^2$')
-
+        plt.semilogy(logit(f_BSC_right_wellmixed), 
+                  (2 * N * r) / s / (1 - f_BSC_right_wellmixed) ** 2, 
+                  linewidth = 5, linestyle = '-.', alpha = 0.5, 
+                  color ='#4daf4a', 
+                  label = r'$2 U_n N r / s (1 - f)^2$')
     SFS_well_mixed = np.loadtxt(
-            'backward_simulation_data/expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.2e}_nsample={}_nsim={}.txt'.format(
+            'backward_simulation_data/'
+            + 'expected_SFS_well_mixed_N={}_Tfix={}_s={:.2f}_r={:.2e}_nsample={}_nsim={}.txt'.format(
                     N, T_after_fix, s, r, n, n_sim_well_mixed))
     plt.semilogy(logit(f_short_wellmixed), moving_average(SFS_well_mixed,
-                 window_size_1d * 10, smooth_start_1d), linewidth = 5, alpha = 0.5, 
+                 window_size_1d, smooth_start_1d), linewidth = 5, alpha = 0.4, 
     color = 'k')
     plt.semilogy(logit(f_short_1d), 2 * N / f_short_1d, 
                  linewidth = 5, linestyle = '--', label = r'$2 N U_n / f$', 
                  color = '#f781bf')
-#plt.savefig('Figure5.pdf', format = 'pdf', bbox_inches = 'tight')
+    plt.vlines(logit(np.log(N * s) * r / s), 10 ** 6, 10 ** 11, 
+               label = r'$f = \ln (Ns) r / s$')
+    plt.vlines(-logit(np.log(N * s) * r / s), 10 ** 6, 10 ** 11, 
+               label = r'$f = 1 - \ln (Ns) r / s')
+
+    plt.savefig('Figure5_{}.pdf'.format(rind), format = 'pdf', bbox_inches = 'tight')
