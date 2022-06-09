@@ -6,19 +6,7 @@ Tracks migration and parent lineage as they coalesce back in time
 import numpy as np
 from numpy import random
 
-'''
-L = 200 # number of demes in 1 Direction. Total demes = L*L
-N = 200 # deme capacity
-s = 0.05 # selection coef
-m = 0.25 # migration rate
-r = 0 # recombination rate
-tfinal = 1721 # sweep time
-nbase = 100# sample size
-N_SFS = 4 # number of coalescent simulation we run.
-T_after_fix = 0 # number of generations between fixation and sampling
-n_forward = 1 # forward time simulation number
-l0 = 100
-'''
+
 def safe_divide(a, b, val = 0):
     return np.divide(a, b, out = np.full_like(a, val), where = b != 0)
     
@@ -101,23 +89,23 @@ def migration(rho_e_parent, individuals, rho , m, L, dimension):
         rho_e_parent_extended = np.concatenate(([rho_e_parent[0]], rho_e_parent, [rho_e_parent[-1]]))
         rho_wt_parent_extended = np.concatenate(([rho_wt_parent[0]], rho_wt_parent, [rho_wt_parent[-1]]))
         
-        # For mutant first, find the parent's deme and then its index inside the deme
+        #### Start with the mutant type #######        
+        
+        # Find the parent's deme and then its index inside the deme
         left_parent_prob_mut = m / 2 * np.take(rho_e_parent_extended, deme_arr)
         mid_parent_prob_mut = (1 - m) * np.take(rho_e_parent_extended, deme_arr + 1)
         right_parent_prob_mut = m / 2 * np.take(rho_e_parent_extended, deme_arr + 2)
         total_prob_mut = (left_parent_prob_mut + mid_parent_prob_mut + right_parent_prob_mut)
 
         # Set the cumulative probability
-#        mid_parent_prob_mut_cumulative = safe_divide(left_parent_prob_mut + mid_parent_prob_mut,
-#        total_prob_mut, val = 1)
-#        left_parent_prob_mut_cumulative = safe_divide(left_parent_prob_mut, 
-#                                                      total_prob_mut, 
-#                                                      val = 1)
         mid_parent_prob_mut_cumulative = np.divide(left_parent_prob_mut + mid_parent_prob_mut,
         total_prob_mut)
         left_parent_prob_mut_cumulative = np.divide(left_parent_prob_mut, 
                                                       total_prob_mut)
-        
+         #Right parent probablity is determined by the two numbers above. 
+       
+        # The location of individuals where probablty to move left is found is in left_parent_idxs_mut/wt depending on type.
+        # For those indivduals, move the location. Repeat for others
 
 
         left_parent_idxs_mut = np.where(np.logical_and(
@@ -155,7 +143,7 @@ def migration(rho_e_parent, individuals, rho , m, L, dimension):
         ind_in_deme_arr_next[mut_idxs] = random.randint(0, np.take(rho_e_parent, 
                         deme_arr_next[mut_idxs]))
         
-        # Now repeat the same thing for the WT population
+        #### Now repeat the same thing for the wild-type (WT) population
         left_parent_prob_wt = m / 2 * np.take(rho_wt_parent_extended, deme_arr)
         mid_parent_prob_wt = (1 - m) * np.take(rho_wt_parent_extended, deme_arr + 1)
         right_parent_prob_wt = m / 2 * np.take(rho_wt_parent_extended, deme_arr + 2)
@@ -206,6 +194,15 @@ def migration(rho_e_parent, individuals, rho , m, L, dimension):
 
 
     else: ##2-D migrations 
+        '''
+        Migration patterns from a given index i in 2-D:
+        Top = (i-L)%(L*L)
+        Bottom = (i+L)%(L*)
+        Right = i + [-(L-1) if (i+1)%L ==0 else 1][0]
+        Left = i + [(L-1) if (i)%L ==0 else -1][0]
+    
+        This takes care of edge cases also
+        '''
 
         '''Creating the probablities of moving to the nearest neigbor if it is of same type. The probablity is weighted by the number of mutants/wiltypes in the neighborinf deme'''
         left_parent_prob_mut = m / 4 * np.take(rho_e_parent,
