@@ -1,7 +1,7 @@
 # Simulations for ``Spatial structure alters the site frequency spectrum produced by hitchhiking"
 
 ## Figures
-Run `Figures_lean.ipynb' to generate Figures 2- in the manuscript. It imports simulation results from `forward_simulation_data' and `backward_simulation_data' folders to make SFSs.
+Run `Figures_lean.ipynb` to generate Figures 2- in the manuscript. It imports simulation results from `forward_simulation_data' and `backward_simulation_data' folders to make SFSs.
 
 ## Combined_codes
 This folder contains forward and backward-in-time simulations.
