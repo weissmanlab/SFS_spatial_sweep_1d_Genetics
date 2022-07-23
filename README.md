@@ -1,3 +1,8 @@
-# TITLE
+# Simulations for ``Spatial structure alters the site frequency spectrum produced by hitchhiking"
 
-This is a repo for Jiseon to check in her SFS spatial structure code.
+## Figure
+Jupyter notebook for generating figures in the manuscript.
+
+## Combined codes
+This folder contains forward and backward-in-time simulations.
+
