@@ -146,7 +146,8 @@ def runner(idx):
 
     while left_individuals > 1 and extra_gen < extra_gen_cutoff:  ###Will it be same for 2-D
         #print('extra gens')
-        branch_len += 1
+        # Only update call np.histogram when there is nonzero number of coalescent events.
+        SFS += hist
         extra_gen += 1
         rho_e_parent_pre_sweep = np.zeros_like(rho_e)
         rho_e_parent_pre_sweep = (rho_e_parent_pre_sweep).astype(np.int64)
@@ -157,9 +158,7 @@ def runner(idx):
         individuals, leaf_counts = coalescent(individuals_post_migration, leaf_counts)
         current_individuals_counts = len(individuals)
         if current_individuals_counts < left_individuals:
-            hist, bin_edges = np.histogram(leaf_counts * branch_len, bins = np.arange(1, n + 2))
-            SFS += hist
-            branch_len = 0
+            hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
         left_individuals = current_individuals_counts
         
         
@@ -177,8 +176,9 @@ def runner(idx):
     
     while left_individuals > 1:
         T2 = random.exponential(rho * L / ((left_individuals - 1) * left_individuals / 2)) ###Drawing the T2 from geometric distribution
-        hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
         SFS += hist * T2 ##That many branches will exist
+
+        hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
 
         # Now choose two random branches that will coalesce in T2 generations. 
         coal_inds = random.choice(range(left_individuals), size = 2, replace = False)
