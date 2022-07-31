@@ -95,26 +95,26 @@ def runner(idx):
     #Since the population doesnt change once sweep has fixed, we don't need to change the input data for this
     
     while (t_after_fix < T_after_fix) and (len(individuals) > 1):
+        SFS += hist
         t_after_fix += 1
         # Since every individual has the mutant allele after fixation, recombination step is not needed
         individuals_post_migration = migration(rho_e, individuals_post_recombination, rho, m, L, dimension)
         individuals, leaf_counts = coalescent(individuals_post_migration, leaf_counts)
         hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
-        SFS += hist
 
     '''Going back in time during the sweep, all the way back to the time when mutation is first seeded'''
     line_num = -1
     
     while (len(individuals) > 1) and (line_num > -len(lines)):  ##The maximum we can go backward in time is till T2
         #print('sweep')
-
+        SFS += hist
         line_num -= 1
+
         rho_e_parent = (lines[line_num]).astype(np.int64) ##Getting the parent generation from each time step of our forward simulation
         individuals_post_migration = migration(rho_e_parent, individuals, rho, m, L, dimension)
         individuals_post_recombination = recombination(rho_e_parent, individuals_post_migration, rho, r)
         individuals, leaf_counts = coalescent(individuals_post_recombination, leaf_counts)
         hist, bin_edges = np.histogram(leaf_counts,bins = np.arange(1, n + 2))
-        SFS += hist
         rho_e = rho_e_parent
     
 
