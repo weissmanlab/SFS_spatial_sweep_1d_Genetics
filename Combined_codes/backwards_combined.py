@@ -178,7 +178,6 @@ def runner(idx):
         T2 = random.exponential(rho * L / ((left_individuals - 1) * left_individuals / 2)) ###Drawing the T2 from geometric distribution
         SFS += hist * T2 ##That many branches will exist
 
-        hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
 
         # Now choose two random branches that will coalesce in T2 generations. 
         coal_inds = random.choice(range(left_individuals), size = 2, replace = False)
@@ -187,6 +186,8 @@ def runner(idx):
         leaf_counts_copy[coal_inds[0]] += leaf_counts[coal_inds[1]]
         leaf_counts_copy[coal_inds[1]] = 0
         leaf_counts = leaf_counts_copy[leaf_counts_copy > 0]
+        hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
+
         left_individuals -= 1
 
 
