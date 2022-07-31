@@ -96,7 +96,7 @@ def runner(idx):
     
     while (t_after_fix < T_after_fix) and (len(individuals) > 1):
         t_after_fix += 1
-        individuals_post_recombination = recombination(rho_e, individuals, rho, r)
+        # Since every individual has the mutant allele after fixation, recombination step is not needed
         individuals_post_migration = migration(rho_e, individuals_post_recombination, rho, m, L, dimension)
         individuals, leaf_counts = coalescent(individuals_post_migration, leaf_counts)
         hist, bin_edges = np.histogram(leaf_counts, bins = np.arange(1, n + 2))
