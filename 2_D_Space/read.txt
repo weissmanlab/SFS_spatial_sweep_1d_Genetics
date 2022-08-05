@@ -1,8 +1,0 @@
-For the cluster script: 
-1. Submit one job for each forward run you want to do. Change:
-    1. Job Name
-    2. Nforw
-    3. Parameter values
-    
-    
-For final plot: 
